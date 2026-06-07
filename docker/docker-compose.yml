@@ -1,0 +1,21 @@
+services:
+  db:
+    image: pgvector/pgvector:0.8.0-pg16
+    container_name: eva-db
+    restart: unless-stopped
+    env_file: ../.env
+    ports:
+      - "5433:5432"
+    volumes:
+      - eva_pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: pg_isready -U eva -d eva
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  eva_pgdata:
+    driver: local
