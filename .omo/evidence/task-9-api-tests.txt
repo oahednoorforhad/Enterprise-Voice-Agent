@@ -1,0 +1,21 @@
+Task 9 — API Integration Tests: Chat endpoint behavior
+========================================================
+
+Date: 2026-06-10
+Related: Sprint 3, FR-08 (Response Generation), POST /api/v1/chat
+
+Test file
+---------
+- tests/test_chat_api.py (7 tests)
+
+Coverage
+--------
+- test_happy_path: 200 with response, evidence, reasoning_trace, tool_calls_made
+- test_greeting_no_tools: 200 with no tools, evidence=None
+- test_customer_context_merging: customer_id from request overrides mock user
+- test_rejects_missing_message: 422 validation
+- test_rejects_missing_customer_id: 422 validation
+- test_rejects_empty_body: 422 validation
+- test_orchestrator_service_construction: correct args passed to OrchestratorService
+
+Result: 7/7 pass

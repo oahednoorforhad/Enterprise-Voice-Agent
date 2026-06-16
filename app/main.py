@@ -12,11 +12,17 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.chat_router import chat_router
+from app.api.tools_router import tools_router
 from app.config import get_settings
+from app.core.exceptions import DomainException
 from app.db import dispose_engine, get_db_session
+from app.observability import init_langfuse, shutdown_langfuse
+from app.schemas.tools import ToolResult
 
 
 @asynccontextmanager
@@ -24,8 +30,20 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Initialise and release shared resources around the app lifetime."""
 
     settings = get_settings()
-    # Initialise observability, vector store clients, etc. here in later sprints.
     app.state.settings = settings
+
+    # ── Langfuse Observability ──────────────────────────────────────────
+    if settings.langfuse_public_key and settings.langfuse_secret_key:
+        try:
+            init_langfuse(
+                public_key=settings.langfuse_public_key,
+                secret_key=settings.langfuse_secret_key,
+                # LANGFUSE_BASE_URL takes precedence; fall back to langfuse_host
+                base_url=settings.langfuse_base_url or settings.langfuse_host,
+            )
+        except Exception:  # noqa: BLE001
+            pass  # silently bypass if init fails
+    # Keys missing → silently skip (no warning spam).
 
     # ── Structured logging ──────────────────────────────────────────────
     processors = [
@@ -51,6 +69,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         yield
     finally:
+        shutdown_langfuse()
         await dispose_engine()
 
 
@@ -109,6 +128,27 @@ def create_app() -> FastAPI:
                 detail={"status": "not ready", "db": True, "vector": False},
             )
         return {"status": "ready", "db": True, "vector": True}
+
+    # ── Global exception handlers ──────────────────────────────────────
+    @app.exception_handler(DomainException)
+    async def domain_exception_handler(
+        request, exc: DomainException
+    ) -> JSONResponse:
+        """Catch any ``DomainException`` and return it as a 200 ``ToolResult``.
+
+        LLM-callable tools always return ``ToolResult(success=False, error=...)``
+        wrapped in a 200 OK so the LLM never sees a 4xx/5xx and can always
+        interpret the response as a structured result.
+        """
+        result = ToolResult.fail(str(exc))
+        return JSONResponse(
+            status_code=200,
+            content=result.model_dump(),
+        )
+
+    # ── Routers ────────────────────────────────────────────────────────
+    app.include_router(tools_router)
+    app.include_router(chat_router)
 
     return app
 

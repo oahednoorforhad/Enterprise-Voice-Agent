@@ -1,0 +1,30 @@
+Task 3 — Intent Analysis: Greeting Evidence
+==============================================
+
+Date: 2026-06-10
+Test: tests/test_intent_analyzer.py::TestGreeting
+
+Test: test_english_greeting
+  Input: "Hello, how are you?"
+  Mocked LLM response: greeting, confidence=0.95
+  Candidate tools: []
+  Candidate sources: []
+  Result: PASS
+  — Intent label correctly classified as greeting
+  — Confidence >= 0.9 (0.95)
+  — Empty candidate_tools and candidate_sources (no tools needed)
+
+Test: test_bangla_greeting
+  Input: "নমস্কার, কেমন আছেন?"
+  Mocked LLM response: greeting, confidence=0.95
+  Candidate tools: []
+  Candidate sources: []
+  Result: PASS
+  — Bangla (Bengali) greeting correctly classified as greeting
+  — Confidence >= 0.9 (0.95)
+  — Empty candidate_tools and candidate_sources (no tools needed)
+
+Verification: All greeting tests pass.
+The IntentAnalyzer correctly handles the greeting edge case
+with empty tool/source lists and high confidence.
+14/14 tests passed (entire test_intent_analyzer.py suite).

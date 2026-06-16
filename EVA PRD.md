@@ -614,7 +614,7 @@ Final Resolution
 
 Frontend
 
-* Next.js
+* TanStack Start
 * TypeScript
 * TailwindCSS
 

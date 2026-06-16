@@ -29,7 +29,7 @@ class VectorStore:
             value_rows.append(
                 f"(CAST(:id_{i} AS uuid), :collection_{i}, :title_{i}, "
                 f":content_{i}, CAST(:source_ref_{i} AS text), "
-                f"CAST(:metadata_{i} AS jsonb), :embedding_{i})"
+                f"CAST(:metadata_{i} AS jsonb), CAST(:embedding_{i} AS vector))"
             )
             params[f"id_{i}"] = item.id
             params[f"collection_{i}"] = item.collection

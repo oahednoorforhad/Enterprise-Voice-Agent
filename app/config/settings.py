@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     app_name: str = "EVA Backend"
     environment: Literal["development", "staging", "production"] = "development"
     log_level: str = "INFO"
-    cors_origins: list[str] = ["http://localhost:3000"]
+    cors_origins: list[str] = ["http://localhost:3000", "http://localhost:3001"]
     mock_auth_enabled: bool = True
 
     # Database
@@ -52,10 +52,13 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-2.0-flash"
     gemini_audio_model: str = "gemini-2.0-flash"
 
+
+
     # Observability
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
     langfuse_host: str = "https://cloud.langfuse.com"
+    langfuse_base_url: str = ""  # takes precedence over langfuse_host when set
 
     # Reasoning
     max_tool_calls_per_turn: int = 6

@@ -298,6 +298,7 @@ dev = [
 dev = [
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
+    { name = "ruff" },
     { name = "testcontainers" },
 ]
 
@@ -333,6 +334,7 @@ provides-extras = ["dev"]
 dev = [
     { name = "pytest-asyncio", specifier = ">=1.4.0" },
     { name = "pytest-cov", specifier = ">=7.1.0" },
+    { name = "ruff", specifier = ">=0.15.16" },
     { name = "testcontainers", specifier = ">=4.14.2" },
 ]
 

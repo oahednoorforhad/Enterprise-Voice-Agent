@@ -1,0 +1,40 @@
+Task 8 — Chat Endpoint: Happy path through POST /api/v1/chat
+==============================================================
+
+Date: 2026-06-10
+Related: Sprint 3, FR-08 (Response Generation), POST /api/v1/chat
+
+Input
+-----
+- POST /api/v1/chat/
+- Body: {"message": "Why was I charged twice?", "customer_id": "550e8400-e29b-41d4-a716-446655440000"}
+- Mock dependencies: get_db_session, get_current_user, OrchestratorService, LLMClient
+
+Endpoint execution
+------------------
+1. FastAPI validates ChatRequest (message + customer_id required)
+2. Dependency overrides provide mock session + mock user context
+3. OrchestratorService constructed with llm, session, customer_id, customer_context
+4. process_turn(message) called → returns ChatResponse
+5. Response returned as JSON with response, evidence, reasoning_trace, tool_calls_made
+
+Output
+------
+- HTTP 200
+- Body contains: response (str), tool_calls_made (list), evidence (object), reasoning_trace (object)
+
+Variants tested
+---------------
+- Billing inquiry: 200 with tool_calls_made=["get_billing_history"]
+- Greeting: 200 with no tools, evidence=None
+- Customer context merging: request customer_id overrides mock user's id
+- Missing message: 422 validation error
+- Missing customer_id: 422 validation error
+- Empty body: 422 validation error
+- OrchestratorService construction: verified correct args passed
+
+Validation
+----------
+- 7 tests pass in test_chat_api.py
+- All Sprint 3 module tests pass
+- All no-regression tests pass

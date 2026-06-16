@@ -15,7 +15,7 @@ async def test_seed_first_run_populates_tables(async_session) -> None:
     """Call ``_seed`` and verify exactly 20 customers were inserted."""
     from scripts.seed_db import _seed
 
-    await _seed(Namespace(reset=False))
+    await _seed(Namespace(reset=True))
 
     result = await async_session.execute(select(func.count(Customer.id)))
     count = result.scalar()

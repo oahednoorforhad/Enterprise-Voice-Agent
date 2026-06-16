@@ -1,0 +1,38 @@
+Task 8 — Chat Endpoint: Validation error handling
+====================================================
+
+Date: 2026-06-10
+Related: Sprint 3, FR-08 (Response Generation), FastAPI request validation
+
+Input
+-----
+- POST /api/v1/chat/
+- Body: {"customer_id": "..."} (missing message)
+
+Endpoint execution
+------------------
+1. FastAPI validates ChatRequest against Pydantic schema
+2. Required field "message" missing → 422 Unprocessable Entity
+3. Endpoint function is NEVER called (validation happens at the routing layer)
+
+Output
+------
+- HTTP 422
+- Body contains FastAPI validation error detail
+
+Variants tested
+---------------
+- Missing message: 422 with field error for "message"
+- Missing customer_id: 422 with field error for "customer_id"
+- Empty JSON body: 422 with field errors for both "message" and "customer_id"
+
+Design rationale
+----------------
+- FastAPI/Pydantic request validation catches malformed payloads before any business logic runs
+- No mock setup needed for validation tests — the endpoint never reaches OrchestratorService
+- This keeps validation tests fast and deterministic
+
+Validation
+----------
+- 3 validation tests pass in test_chat_api.py
+- No dependency on orchestrator, LLM, or database

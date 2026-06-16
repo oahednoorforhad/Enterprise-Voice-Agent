@@ -1,0 +1,12 @@
+=== EVIDENCE: Task 4 — Tool Selection (Greeting/Empty) ===
+Intent label:            greeting
+Confidence:              0.95
+Candidate tools (input): ['get_billing_history']
+Selected tools (output): []
+Max tool calls:          10
+Customer context:        {}
+========================================================
+Result: ToolSelector correctly returned empty tool list for greeting.
+  Expected: []
+  Actual:   []
+========================================================

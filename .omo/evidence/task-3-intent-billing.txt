@@ -1,0 +1,29 @@
+Task 3 — Intent Analysis: Billing Inquiry Evidence
+====================================================
+
+Date: 2026-06-10
+Test: tests/test_intent_analyzer.py::TestBillingInquiry
+
+Test: test_english_billing_inquiry
+  Input: "Why was I charged twice?"
+  Mocked LLM response: billing_inquiry, confidence=0.92
+  Candidate tools: get_billing_history, get_support_tickets, search_policies
+  Candidate sources: billing_records, support_tickets, policies
+  Result: PASS
+  — Intent label correctly classified as billing_inquiry
+  — get_billing_history in candidate_tools
+  — billing_records in candidate_sources
+
+Test: test_bangla_billing_inquiry
+  Input: "আমাকে কেন দ্বিগুণ চার্জ করা হয়েছে?"
+  Mocked LLM response: billing_inquiry, confidence=0.91
+  Candidate tools: get_billing_history, get_support_tickets, search_policies
+  Candidate sources: billing_records, support_tickets, policies
+  Result: PASS
+  — Bangla (Bengali) billing query correctly classified as billing_inquiry
+  — get_billing_history in candidate_tools
+  — billing_records in candidate_sources
+
+Verification: All billing inquiry tests pass.
+14/14 tests passed (entire test_intent_analyzer.py suite).
+0 regressions in tests/test_reasoning_schemas.py and tests/test_llm_client.py.

@@ -1,0 +1,25 @@
+Task 9 — Sprint 3 Module Tests: Full orchestration and reasoning coverage
+===========================================================================
+
+Date: 2026-06-10
+Related: Sprint 3, All FRs, Full module test suite
+
+Test modules executed
+---------------------
+- tests/test_reasoning_schemas.py — schema serialization and validation (13 tests)
+- tests/test_llm_client.py — LLM client boundary with mocked SDK (13 tests)
+- tests/test_intent_analyzer.py — intent classification (14 tests)
+- tests/test_tool_selector.py — tool selection policy (30 tests)
+- tests/test_evidence_aggregator.py — evidence aggregation (21 tests)
+- tests/test_reasoning_pipeline.py — reasoning pipeline (25 tests)
+- tests/test_orchestrator.py — orchestrator turn loop (15 tests)
+
+Result: 131/131 pass
+
+Coverage per module
+-------------------
+- Every module has happy-path and edge-case tests
+- Partial failure handling tested in evidence_aggregator + orchestrator
+- Tool limit enforcement tested in tool_selector + orchestrator
+- Insufficient evidence tested in reasoning_pipeline
+- Multilingual (Bangla/English) tested in intent_analyzer

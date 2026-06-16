@@ -65,10 +65,12 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+extend-ignore = ["B008"]
 
 [dependency-groups]
 dev = [
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
+    "ruff>=0.15.16",
     "testcontainers>=4.14.2",
 ]

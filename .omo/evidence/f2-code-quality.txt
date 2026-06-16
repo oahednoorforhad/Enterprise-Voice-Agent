@@ -1,0 +1,232 @@
+================================================================================
+F2 — Code Quality Review for Sprint 3
+Date: 2026-06-10
+================================================================================
+
+1. TOOL RESULTS
+--------------------------------------------------------------------------------
+
+--- Ruff Check ---
+COMMAND: uv run ruff check app tests
+RESULT : FAIL (48 errors found)
+
+Breakdown by severity (entire codebase):
+  I001 (unsorted imports)         : 11 occurrences (7 app + 4 tests)
+  B008 (Depends in arg defaults)  : 12 occurrences (pre-existing, FastAPI pattern)
+  B904 (raise without from err)   :  3 occurrences (app/core/llm_client.py)
+  B905 (zip without strict=)      :  1 occurrence  (tests/test_evidence_aggregator.py)
+  F401 (unused import)            :  1 occurrence  (tests/test_evidence_aggregator.py)
+  E501 (line too long)            : 16 occurrences (pre-existing in Sprint 2 test files)
+  UP046 (Generic subclass)        :  1 occurrence  (app/schemas/tools.py, pre-existing)
+  11 errors are auto-fixable with `ruff --fix`.
+
+Errors in Sprint 3 files:
+  - app/api/chat_router.py            : I001, B008 (x3, FastAPI idiom, accepted)
+  - app/orchestrator/evidence_aggregator.py : I001
+  - app/reasoning/pipeline.py         : I001
+  - app/core/llm_client.py            : B904 (x3, raise without `from err`)
+  - tests/test_evidence_aggregator.py : I001, F401, B905
+  - tests/test_intent_analyzer.py     : I001
+  - tests/test_orchestrator.py        : I001
+  - tests/test_reasoning_pipeline.py  : I001
+  - tests/test_tool_selector.py       : I001
+
+--- mypy Check ---
+COMMAND: uv run mypy app
+RESULT : FAIL (mypy is NOT installed)
+         The project uv environment does not have mypy as a dependency.
+         Install with `uv add --dev mypy` to enable type checking.
+
+--- pytest ---
+COMMAND: uv run pytest tests/ -q
+RESULT : 1 failed, 197 passed (198 total, ~3s)
+
+FAILED: tests/test_seed.py::test_seed_first_run_populates_tables
+  Reason: Expected 20 customers, database has 14 (pre-existing, NOT Sprint 3)
+  The database was already seeded previously without --reset; this test
+  requires --reset or a clean database.  Unrelated to Sprint 3 changes.
+
+All other 197 tests pass, including:
+  - test_orchestrator.py          : all 12 tests PASS
+  - test_reasoning_pipeline.py    : all 20+ tests PASS
+  - test_chat_api.py              : all  8 tests PASS
+  - test_evidence_aggregator.py   : all 40+ tests PASS
+  - test_intent_analyzer.py       : all tests PASS
+  - test_tool_selector.py         : all tests PASS
+
+
+2. FILE-BY-FILE REVIEW
+--------------------------------------------------------------------------------
+
+=== app/schemas/reasoning.py (95 lines) ===
+STATUS: CLEAN
+  - No direct SQL access
+  - No unused imports
+  - No AI-slop patterns
+  - Clean Pydantic models with appropriate docstrings
+  - One docstring reference to "candidate_tools" docstring is slightly
+    redundant but acceptable
+
+=== app/core/llm_client.py (250 lines) ===
+STATUS: ISSUES (3 B904 warnings)
+  - No direct SQL access
+  - Lines 138, 202, 215: `raise LLMClientError(...)` without `from exc`
+    in except blocks.  Should use `raise ... from exc` to preserve
+    exception chain.  B904 violation.
+  - Docstring style is numpydoc-verbose but consistent with project
+    conventions — not slop.
+  - `_feedback_summary()` is a clean helper.
+
+=== app/orchestrator/intent_analyzer.py (152 lines) ===
+STATUS: CLEAN
+  - No direct SQL access
+  - No unused imports
+  - Clean separation of internal model (_IntentLLMResponse) and public API
+  - _SYSTEM_PROMPT is well-structured, not overly verbose
+
+=== app/orchestrator/tool_selector.py (166 lines) ===
+STATUS: CLEAN
+  - No direct SQL access (no session parameter at all)
+  - No unused imports
+  - Deterministic policy, no LLM calls — clean design
+  - Intent ordering constants are well-organised
+
+=== app/orchestrator/evidence_aggregator.py (280 lines) ===
+STATUS: ISSUES (1 I001 warning)
+  - No direct SQL access
+  - I001: Imports not sorted (from __future__, stdlib, app modules
+    should be grouped)
+  - Tool builder registry pattern is clean and extensible
+  - No AI-slop patterns
+
+=== app/reasoning/pipeline.py (279 lines) ===
+STATUS: ISSUES (1 I001 warning)
+  - No direct SQL access
+  - I001: Imports not sorted
+  - Two-path design (deterministic fallback + LLM reasoning) is clean
+  - No AI-slop patterns
+  - Clamping logic for confidence and reasoning_type validation are
+    proper defensive measures
+
+=== app/orchestrator/service.py (239 lines) ===
+STATUS: CLEAN
+  - No direct SQL access
+  - Receives session but delegates DB to tool functions only
+  - No unused imports
+  - _TOOL_FUNCTIONS registry pattern is clean and testable
+  - Tools are called via **kwargs dispatch — acceptable pattern
+  - No AI-slop patterns
+
+=== app/api/chat_router.py (43 lines) ===
+STATUS: ISSUES (I001, B008)
+  - I001: Unsorted imports
+  - B008 (x3): Depends() in function defaults — this is standard FastAPI
+    pattern, technically a ruff B008 false positive because FastAPI
+    evaluates Depends() lazily.
+  - Clean, minimal routing layer
+
+=== app/main.py (142 lines) ===
+STATUS: ISSUES (B008)
+  - B008: Depends() in `ready()` endpoint — same FastAPI pattern as above
+  - Direct SQL in the `/ready` endpoint uses `text("SELECT 1")` and
+    `text("SELECT extname...")` — this is a health-check endpoint, NOT
+    orchestrator/reasoning code, so it is ACCEPTABLE.
+  - No issues in the wiring or lifespan management
+
+=== tests/test_orchestrator.py (922 lines) ===
+STATUS: ISSUES (I001)
+  - I001: Unsorted imports
+  - Otherwise clean — comprehensive mocking, helper factories, good
+    coverage of billing/greeting/partial-failure/unknown-tool paths
+
+=== tests/test_reasoning_pipeline.py (737 lines) ===
+STATUS: ISSUES (I001)
+  - I001: Unsorted imports
+  - Thorough test coverage for both deterministic paths and LLM path
+  - Good edge cases: None intent, confidence clamping, invalid type fallback
+
+=== tests/test_chat_api.py (232 lines) ===
+STATUS: CLEAN
+  - No ruff issues
+  - Tests for happy path, greeting, context merging, validation, construction
+  - Well-structured with fixtures
+
+
+3. DIRECT DB ACCESS CHECK
+--------------------------------------------------------------------------------
+Searched orchestrator/ for: session.execute, text(, SELECT, INSERT, UPDATE, DELETE
+  → ZERO matches
+
+Searched reasoning/ for: same patterns
+  → ZERO matches
+
+Searched core/ for: same patterns
+  → ZERO matches
+
+Searched schemas/ for: same patterns
+  → ZERO matches
+
+Verdict: NO direct SQL in orchestrator/reasoning code.  The only SQL access
+in the Sprint 3 boundary is via tool functions (which is correct) and the
+pre-existing `/ready` health-check (acceptable).
+
+
+4. UNUSED IMPORTS CHECK
+--------------------------------------------------------------------------------
+- tests/test_evidence_aggregator.py line 18: `EvidencePackage` imported
+  but never used in code (only referenced in docstrings/comments).  F401.
+
+All other files: No unused imports detected.
+
+
+5. AI-SLOP PATTERNS CHECK
+--------------------------------------------------------------------------------
+Checked for:
+  - Overly verbose docstrings:              NOT FOUND (docstrings are consistent
+                                             numpydoc-style per project convention)
+  - Repetitive/boilerplate comments:        NOT FOUND
+  - Unnecessary abstraction layers:         NOT FOUND (_IntentLLMResponse/
+                                             _ReasoningLLMResponse are legitimate)
+  - Redundant type annotations:             NOT FOUND
+  - Orphaned TODOs/FIXMEs/HACKs:            NOT FOUND
+  - Unnecessary `# type: ignore` comments:  FOUND in test helpers (x5) using
+                                             `**overrides` pattern — minor smell,
+                                             not severe slop
+
+Verdict: LOW AI-slop presence.  Acceptable.
+
+
+6. SUMMARY
+--------------------------------------------------------------------------------
+Build    : FAIL (mypy not installed)
+Lint     : FAIL (48 errors: mostly I001 sort-order and B008 FastAPI pattern,
+           3 real B904 issues in llm_client.py, 1 F401 unused import)
+Tests    : 197 pass / 1 fail (pre-existing seed issue)
+Files    : 7 clean / 5 with issues
+
+  Sprint 3 app files with issues:
+    - app/core/llm_client.py             (3x B904)
+    - app/orchestrator/evidence_aggregator.py (I001)
+    - app/reasoning/pipeline.py          (I001)
+    - app/api/chat_router.py             (I001)
+
+  Sprint 3 test files with issues:
+    - tests/test_evidence_aggregator.py  (I001, F401, B905)
+    - tests/test_orchestrator.py         (I001)
+    - tests/test_reasoning_pipeline.py   (I001)
+    - tests/test_intent_analyzer.py      (I001)
+    - tests/test_tool_selector.py        (I001)
+
+VERDICT: APPROVE (with notes)
+--------------------------------------------------------------------------------
+The Sprint 3 reasoning engine code is structurally sound.  All observed
+issues are minor:
+  1. B904 (x3) in llm_client.py — should chain exceptions with `from exc`
+  2. I001 (sort-order) across multiple files — auto-fixable
+  3. F401 (unused import) in test file — remove `EvidencePackage` import
+  4. B905 (zip without strict=) in test — add `strict=True`
+  5. mypy not installed — consider adding to dev dependencies
+
+No direct SQL in orchestrator/reasoning.  No AI-slop.  No blocking issues.
+The single test failure is pre-existing and not related to Sprint 3.
+================================================================================
