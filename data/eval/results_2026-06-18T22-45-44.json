@@ -1,0 +1,797 @@
+{
+  "run_id": "2026-06-18T22-45-44",
+  "total": 50,
+  "errors": 43,
+  "customer_id": "c63d2f89-9aa3-4157-8205-a7d6cfc23207",
+  "category_filter": null,
+  "metrics": {
+    "overall": {
+      "retrieval": 0.9286,
+      "reasoning": 1.0,
+      "hallucination": 1.0,
+      "quality": 0.7857,
+      "pass_rate": 0.12
+    },
+    "by_category": {
+      "billing": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0,
+        "count": 1,
+        "pass_rate": 1.0
+      },
+      "subscription": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0,
+        "count": 2,
+        "pass_rate": 1.0
+      },
+      "refund_requests": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.75,
+        "count": 2,
+        "pass_rate": 1.0
+      },
+      "product_problems": {
+        "retrieval": 0.75,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5,
+        "count": 2,
+        "pass_rate": 0.5
+      }
+    }
+  },
+  "scenarios": [
+    {
+      "id": "SUB-003",
+      "category": "subscription",
+      "query": "Is my account still active?",
+      "response": "I have reviewed your account status, and I can confirm that your Enterprise subscription is fully active and in good standing. Your service period extends through January 1, 2027.",
+      "tool_calls_made": [
+        "get_customer_profile",
+        "get_subscription_status"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 3.11,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "SUB-008",
+      "category": "subscription",
+      "query": "When did I start my current plan?",
+      "response": "I have reviewed your account details, and I can confirm that you started your current Enterprise Annual plan on January 1, 2025.",
+      "tool_calls_made": [
+        "get_subscription_status"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 5.48,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "REF-003",
+      "category": "refund_requests",
+      "query": "Will I get cash back or a credit for the March duplicate charge?",
+      "response": "The duplicate charge you identified from March 2026 has already been resolved. We applied a $299.00 credit to your April 2026 invoice, which effectively offset that charge and balanced your account for that period. No further action is required regarding that specific transaction.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 8.95,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "REF-008",
+      "category": "refund_requests",
+      "query": "I was charged $299 twice. Has this been fixed?",
+      "response": "I have reviewed your billing history, and I can confirm that the duplicate charge you noted from March 2026 was identified and fully resolved. A credit of $299.00 was applied to your April 2026 invoice, which effectively offset that charge and balanced your account for that period. No further action is required on your part.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 12.72,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "PRD-003",
+      "category": "product_problems",
+      "query": "We keep getting 429 errors when importing contacts via the API.",
+      "response": "I have reviewed your account and identified that the 429 errors you are experiencing during bulk contact imports are due to your current method of sending 50,000 records as a single POST batch to the /api/v1/contacts/import endpoint, which exceeds our 500 req/min rate limit. To resolve this, I recommend migrating your process to the /api/v1/bulk-import endpoint, which is designed to handle larger volumes (up to 2,000 records per request) without a per-minute rate cap for Enterprise plans, while also incorporating exponential backoff for resilience. Our API team is already tracking this as an active issue and has a walkthrough call scheduled with your team for June 25, 2026, to ensure a smooth transition.",
+      "tool_calls_made": [
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_documentation"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "root_cause_analysis",
+      "latency_s": 16.97,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "PRD-008",
+      "category": "product_problems",
+      "query": "How do I fix the SSO error AADSTS50011?",
+      "response": "The error code AADSTS50011 indicates a configuration mismatch with your identity provider settings in Microsoft Entra ID. I recommend verifying that the Reply URL (also known as the Assertion Consumer Service URL) configured in your identity provider portal exactly matches the Redirect URI provided in your CloudDesk Authentication settings. If the URLs do not align perfectly, the authentication request will be rejected by the provider.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 0.3,
+      "reasoning_type": "root_cause_analysis",
+      "latency_s": 21.42,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "BIL-004",
+      "category": "billing",
+      "query": "How much have I spent in total with CloudDesk?",
+      "response": "Your total expenditure with CloudDesk to date is $299.00 USD. This reflects your successful payment for May 2026. As previously discussed, your April 2026 invoice was offset by a credit for the duplicate March charge, and your June 2026 invoice for $299.00 remains outstanding.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 24.25,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "ACC-002",
+      "category": "account_access",
+      "query": "How do I add more users to my account?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 26.97,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "BIL-009",
+      "category": "billing",
+      "query": "Was I charged in February 2026?",
+      "error": "",
+      "latency_s": 26.97,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "ACC-007",
+      "category": "account_access",
+      "query": "How do I manage API keys for my team?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 28.17,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "ACC-006",
+      "category": "account_access",
+      "query": "How does a user reset their password?",
+      "error": "",
+      "latency_s": 28.17,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "SUB-004",
+      "category": "subscription",
+      "query": "How many seats does my plan include?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 30.33,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "SUB-009",
+      "category": "subscription",
+      "query": "I want to upgrade to a higher tier \u2014 what options do I have?",
+      "error": "",
+      "latency_s": 30.33,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "REF-004",
+      "category": "refund_requests",
+      "query": "How do I formally request a refund?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 31.51,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "REF-009",
+      "category": "refund_requests",
+      "query": "Are there any late fees I need to worry about?",
+      "error": "",
+      "latency_s": 31.51,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "PRD-004",
+      "category": "product_problems",
+      "query": "What is the bulk import API endpoint and how should I use it?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 32.51,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "PRD-009",
+      "category": "product_problems",
+      "query": "Our error rate jumped in November \u2014 what happened?",
+      "error": "",
+      "latency_s": 32.53,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "BIL-005",
+      "category": "billing",
+      "query": "What is my monthly charge?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 33.56,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "ACC-003",
+      "category": "account_access",
+      "query": "How do I set up SSO for my team?",
+      "error": "",
+      "latency_s": 33.56,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "BIL-010",
+      "category": "billing",
+      "query": "My bank statement shows two charges in March \u2014 is that a mistake?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 36.75,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "ACC-008",
+      "category": "account_access",
+      "query": "We added 5 new seats last January \u2014 are those users active now?",
+      "error": "",
+      "latency_s": 36.75,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "SUB-005",
+      "category": "subscription",
+      "query": "Will my subscription auto-renew?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 37.73,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "SUB-010",
+      "category": "subscription",
+      "query": "What benefits does the Enterprise Annual plan include?",
+      "error": "",
+      "latency_s": 37.73,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "REF-005",
+      "category": "refund_requests",
+      "query": "Was the credit for the March overcharge already applied?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 38.73,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "REF-010",
+      "category": "refund_requests",
+      "query": "I dispute the March charge \u2014 what are my options?",
+      "error": "",
+      "latency_s": 38.75,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "PRD-005",
+      "category": "product_problems",
+      "query": "My CSV export only downloaded 3,200 out of 12,000 contacts.",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 39.72,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "BIL-001",
+      "category": "billing",
+      "query": "Why was I charged twice in March 2026?",
+      "error": "",
+      "latency_s": 39.73,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "PRD-010",
+      "category": "product_problems",
+      "query": "Which of my support tickets are still open or in progress?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 40.91,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "BIL-006",
+      "category": "billing",
+      "query": "When is my next invoice due?",
+      "error": "",
+      "latency_s": 40.91,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "ACC-004",
+      "category": "account_access",
+      "query": "What admin permissions do I have as an Enterprise customer?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 42.0,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "SUB-001",
+      "category": "subscription",
+      "query": "What plan am I currently on?",
+      "error": "",
+      "latency_s": 42.01,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "ACC-009",
+      "category": "account_access",
+      "query": "How do I deactivate a user who has left the company?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 43.01,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "SUB-006",
+      "category": "subscription",
+      "query": "What is the difference between my Enterprise Annual plan and a monthly plan?",
+      "error": "",
+      "latency_s": 43.01,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "REF-001",
+      "category": "refund_requests",
+      "query": "Can I get a refund for the duplicate charge in March?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 44.17,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "REF-006",
+      "category": "refund_requests",
+      "query": "What is your refund policy for annual subscriptions?",
+      "error": "",
+      "latency_s": 44.17,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "PRD-001",
+      "category": "product_problems",
+      "query": "All my users can't log in via SSO since we updated Azure AD.",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 45.33,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "PRD-006",
+      "category": "product_problems",
+      "query": "Is my API rate limit issue still being worked on?",
+      "error": "",
+      "latency_s": 45.33,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "BIL-002",
+      "category": "billing",
+      "query": "Why was my April invoice $0?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 46.5,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "ACC-001",
+      "category": "account_access",
+      "query": "How many team members do I currently have on my account?",
+      "error": "",
+      "latency_s": 46.5,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "BIL-007",
+      "category": "billing",
+      "query": "What currency am I billed in?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 47.45,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "ACC-005",
+      "category": "account_access",
+      "query": "How do I onboard a new team member to CloudDesk?",
+      "error": "",
+      "latency_s": 47.45,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "SUB-002",
+      "category": "subscription",
+      "query": "When does my subscription renew?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 48.44,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "ACC-010",
+      "category": "account_access",
+      "query": "What is my current account status and plan tier?",
+      "error": "",
+      "latency_s": 48.44,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "SUB-007",
+      "category": "subscription",
+      "query": "What happens if I cancel my subscription mid-year?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 49.61,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "REF-002",
+      "category": "refund_requests",
+      "query": "How long does a refund or credit take to process?",
+      "error": "",
+      "latency_s": 49.61,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "REF-007",
+      "category": "refund_requests",
+      "query": "Can I get a refund for unused months if I cancel early?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 50.61,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "PRD-002",
+      "category": "product_problems",
+      "query": "What is the SSO callback URL I need to add to Azure AD?",
+      "error": "",
+      "latency_s": 50.62,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "PRD-007",
+      "category": "product_problems",
+      "query": "My usage has been growing \u2014 could that be causing the API errors?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 51.59,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "BIL-003",
+      "category": "billing",
+      "query": "Do I have any unpaid invoices right now?",
+      "error": "",
+      "latency_s": 51.59,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "BIL-008",
+      "category": "billing",
+      "query": "Show me my billing history for the past few months.",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 52.75,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    }
+  ]
+}

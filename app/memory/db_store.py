@@ -138,6 +138,70 @@ class DbConversationStore:
 
         await session.flush()
 
+    # ── Voice session updates ──────────────────────────────────────────
+
+    async def update_session_summary(
+        self,
+        session: AsyncSession,
+        customer_id: str,
+        summary: str,
+        tools_used: list[str] | None = None,
+        voice_session_id: str | None = None,
+        audio_duration_seconds: int | None = None,
+    ) -> bool:
+        """Persist a call summary to the customer's most recent active session.
+
+        Looks up the session by ``voice_session_id`` first; falls back to the
+        active session for ``customer_id``.  Returns ``True`` if a session was
+        updated, ``False`` if no matching session was found.
+        """
+        uid = uuid.UUID(customer_id)
+        conv_session: ConversationSession | None = None
+
+        if voice_session_id is not None:
+            stmt = (
+                select(ConversationSession)
+                .where(
+                    ConversationSession.customer_id == uid,
+                    ConversationSession.voice_session_id == voice_session_id,
+                )
+                .limit(1)
+            )
+            result = await session.execute(stmt)
+            conv_session = result.scalar_one_or_none()
+
+        if conv_session is None:
+            # Fallback: use the active session
+            stmt = (
+                select(ConversationSession)
+                .where(
+                    ConversationSession.customer_id == uid,
+                    ConversationSession.session_status == "active",
+                    ConversationSession.ended_at.is_(None),
+                )
+                .order_by(ConversationSession.started_at.desc())
+                .limit(1)
+            )
+            result = await session.execute(stmt)
+            conv_session = result.scalar_one_or_none()
+
+        if conv_session is None:
+            return False
+
+        conv_session.summary = summary
+        conv_session.session_status = "closed"
+        conv_session.ended_at = func.now()
+
+        if tools_used is not None:
+            conv_session.tools_used = {"tools": tools_used}
+        if voice_session_id is not None:
+            conv_session.voice_session_id = voice_session_id
+        if audio_duration_seconds is not None:
+            conv_session.audio_duration_seconds = audio_duration_seconds
+
+        await session.flush()
+        return True
+
     # ── Prompt assembly ────────────────────────────────────────────────
 
     async def format_prompt_context(

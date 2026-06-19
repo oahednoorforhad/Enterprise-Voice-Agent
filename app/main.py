@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.chat_router import chat_router
 from app.api.tools_router import tools_router
+from app.api.voice_router import voice_router
 from app.config import get_settings
 from app.core.exceptions import DomainException
 from app.db import dispose_engine, get_db_session
@@ -83,14 +84,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
+    # request_log is registered first so it becomes innermost (CORS wraps it).
     @app.middleware("http")
     async def request_log(request, call_next):
         start = time.monotonic()
@@ -104,6 +98,16 @@ def create_app() -> FastAPI:
             duration_ms=duration_ms,
         )
         return response
+
+    # CORSMiddleware added last = outermost layer, so CORS headers are always
+    # present even when inner handlers return error responses.
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     @app.get("/health", tags=["meta"])
     async def health() -> dict[str, str]:
@@ -149,6 +153,7 @@ def create_app() -> FastAPI:
     # ── Routers ────────────────────────────────────────────────────────
     app.include_router(tools_router)
     app.include_router(chat_router)
+    app.include_router(voice_router)
 
     return app
 

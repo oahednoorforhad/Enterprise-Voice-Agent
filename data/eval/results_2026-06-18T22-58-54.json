@@ -1,0 +1,1065 @@
+{
+  "run_id": "2026-06-18T22-58-54",
+  "total": 50,
+  "errors": 0,
+  "customer_id": "c63d2f89-9aa3-4157-8205-a7d6cfc23207",
+  "category_filter": null,
+  "metrics": {
+    "overall": {
+      "retrieval": 0.86,
+      "reasoning": 1.0,
+      "hallucination": 1.0,
+      "quality": 0.82,
+      "pass_rate": 0.92
+    },
+    "by_category": {
+      "billing": {
+        "retrieval": 0.95,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.75,
+        "count": 10,
+        "pass_rate": 1.0
+      },
+      "subscription": {
+        "retrieval": 0.75,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.85,
+        "count": 10,
+        "pass_rate": 1.0
+      },
+      "refund_requests": {
+        "retrieval": 0.95,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.9,
+        "count": 10,
+        "pass_rate": 1.0
+      },
+      "product_problems": {
+        "retrieval": 0.85,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.8,
+        "count": 10,
+        "pass_rate": 0.9
+      },
+      "account_access": {
+        "retrieval": 0.8,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.8,
+        "count": 10,
+        "pass_rate": 0.7
+      }
+    }
+  },
+  "scenarios": [
+    {
+      "id": "SUB-004",
+      "category": "subscription",
+      "query": "How many seats does my plan include?",
+      "response": "I have reviewed your current Enterprise Annual plan details, and while the plan status is active, the specific seat limit is not defined within your subscription record. I would be happy to escalate this inquiry to your dedicated account manager, who can provide you with the precise seat count and any other details regarding your plan's configuration.",
+      "tool_calls_made": [
+        "get_subscription_status"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "decision_support",
+      "latency_s": 7.95,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "SUB-009",
+      "category": "subscription",
+      "query": "I want to upgrade to a higher tier \u2014 what options do I have?",
+      "response": "I understand you are interested in exploring upgrade options for your account. While I can confirm you are currently on our Enterprise Annual plan, our available records do not provide information regarding specific higher-tier upgrade paths. I would be happy to escalate this inquiry to your dedicated account manager, who can provide a comprehensive overview of available tiers that better align with your evolving needs.",
+      "tool_calls_made": [
+        "get_customer_profile",
+        "get_subscription_status"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "decision_support",
+      "latency_s": 15.86,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "REF-004",
+      "category": "refund_requests",
+      "query": "How do I formally request a refund?",
+      "response": "To formally request a refund, please log in to your CloudDesk account at app.clouddesk.com, navigate to Settings, select Billing, and proceed to Payment History. Locate the specific invoice you wish to dispute and click 'Request Refund,' select a reason, and submit the form for our billing team's review. Alternatively, you may email billing@clouddesk.com with your account email, the specific invoice number, and a brief explanation of your request. As an Enterprise client, you also have the option to contact your dedicated account manager for expedited assistance. Please note that for Enterprise contracts, specific refund terms are governed by your signed enterprise agreement.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 24.66,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "REF-009",
+      "category": "refund_requests",
+      "query": "Are there any late fees I need to worry about?",
+      "response": "I have reviewed your account, and your June 2026 invoice remains outstanding as of today. Our policy stipulates that a late fee of 1.5 percent per month may be applied to any balance remaining unpaid 15 days past the due date. To prevent any such fees or potential service suspension, I strongly recommend that you settle this outstanding $299.00 balance at your earliest convenience.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 33.39,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "PRD-004",
+      "category": "product_problems",
+      "query": "What is the bulk import API endpoint and how should I use it?",
+      "response": "The CloudDesk platform does not feature a dedicated 'bulk import' API endpoint. To programmatically insert or update records, please utilize the CloudDesk REST API. You can find all necessary details, including endpoint documentation and authentication requirements, in our API Reference Guide available at developers.clouddesk.com.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 42.06,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "PRD-009",
+      "category": "product_problems",
+      "query": "Our error rate jumped in November \u2014 what happened?",
+      "response": "I understand your concern regarding the error rate in November 2026. However, our system logs currently only track performance metrics through June 2026, which showed a consistent downward trend from 0.011 in April to 0.007 in June. As we lack data for November 2026, I am unable to provide an analysis of fluctuations during that specific period.",
+      "tool_calls_made": [
+        "get_usage_analytics"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "root_cause_analysis",
+      "latency_s": 50.0,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "BIL-005",
+      "category": "billing",
+      "query": "What is my monthly charge?",
+      "response": "Your monthly recurring charge for the Enterprise plan is $299.00 USD.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 57.53,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "ACC-003",
+      "category": "account_access",
+      "query": "How do I set up SSO for my team?",
+      "response": "To set up Single Sign-On (SSO) for your team, please navigate to the Authentication Settings within the Admin panel of your CloudDesk account. From there, you can select your identity provider from the provided list or configure a custom provider. You will need to have your identity provider's (IdP) metadata URL ready or be prepared to upload the metadata XML file to finalize the configuration.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 67.78,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "BIL-010",
+      "category": "billing",
+      "query": "My bank statement shows two charges in March \u2014 is that a mistake?",
+      "response": "I have reviewed your billing records, and I can confirm that the double charge in March was previously identified and successfully resolved. A $299.00 credit was applied to your account, which balanced your April 2026 invoice to $0.00. Please rest assured that this adjustment effectively corrected the duplicate charge on your account.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 76.78,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "ACC-008",
+      "category": "account_access",
+      "query": "We added 5 new seats last January \u2014 are those users active now?",
+      "response": "I have reviewed our analytics regarding your user activity. As of June 2026, your account shows 52 active users, reflecting a consistent upward trend from the 46 users recorded in April 2026. While our current system provides aggregate activity data rather than a granular report on individual user status or specific seat allocation, the steady increase in active user metrics indicates that your team is engaging with the platform. If you require a detailed audit of those specific seats or individual user status, I will gladly escalate this request to your dedicated account manager who can provide the necessary oversight.",
+      "tool_calls_made": [
+        "get_usage_analytics"
+      ],
+      "confidence": 0.9,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 85.08,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "SUB-005",
+      "category": "subscription",
+      "query": "Will my subscription auto-renew?",
+      "response": "I have verified your account status, and I can confirm that your Enterprise Annual subscription is currently set to auto-renew on January 1, 2027.",
+      "tool_calls_made": [
+        "get_subscription_status"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 93.12,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "SUB-010",
+      "category": "subscription",
+      "query": "What benefits does the Enterprise Annual plan include?",
+      "response": "As an Enterprise Annual client, your plan includes a range of premium benefits designed to ensure your team's success. These include priority support with a maximum 1-hour response time for critical issues, access to 24/7 phone support, and a 99.9 percent uptime guarantee. Furthermore, you benefit from a dedicated account manager who can assist with higher-tier upgrade paths, account audits, and personalized support oversight.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 102.39,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "REF-005",
+      "category": "refund_requests",
+      "query": "Was the credit for the March overcharge already applied?",
+      "response": "I can confirm that the $299.00 credit for the March duplicate charge has been successfully applied to your account. This adjustment was processed against your April 2026 invoice, resulting in a net balance of $0.00 for that period.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "get_support_tickets",
+        "get_ticket_status"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 110.51,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "REF-010",
+      "category": "refund_requests",
+      "query": "I dispute the March charge \u2014 what are my options?",
+      "response": "I have reviewed your account records, and I can confirm that the duplicate charge you experienced in March was already identified and successfully addressed. A $299.00 credit was applied to your April 2026 invoice, effectively resolving the issue and resulting in a net balance of $0.00 for that period. Your account is currently in good standing regarding that matter.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 119.14,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "PRD-005",
+      "category": "product_problems",
+      "query": "My CSV export only downloaded 3,200 out of 12,000 contacts.",
+      "response": "I have reviewed your concern regarding the incomplete CSV export of your contact records. Please note that data exports, like imports, are processed in the background, and it is possible the system is currently managing a heavy load or encountered an intermittent timeout. Since your account is also currently experiencing an open support ticket regarding API rate limits during bulk contact imports, I would like to have our technical team verify if these two issues are related. I will escalate this to your account manager immediately to ensure a full recovery of your data and a stable export process for you.",
+      "tool_calls_made": [
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_documentation"
+      ],
+      "confidence": 0.8,
+      "reasoning_type": "root_cause_analysis",
+      "latency_s": 128.41,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "BIL-001",
+      "category": "billing",
+      "query": "Why was I charged twice in March 2026?",
+      "response": "I have thoroughly investigated your account records regarding the billing concerns in March 2026. I can confirm that the duplicate charge was previously identified by our team and successfully resolved. A credit of $299.00 was applied to your April 2026 invoice, which effectively balanced the account and resulted in a net charge of $0.00 for that period. Your account is currently in good standing in regard to this matter.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 138.12,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "PRD-010",
+      "category": "product_problems",
+      "query": "Which of my support tickets are still open or in progress?",
+      "response": "You currently have two support tickets in progress. The first is an open, high-priority ticket regarding SSO login failures due to a configuration mismatch in your Azure AD redirect URIs. The second is an in-progress, medium-priority ticket concerning API rate limit errors encountered during bulk contact imports. Our technical team is actively coordinating with you, including a scheduled walkthrough on June 25, 2026, to resolve the API import challenges.",
+      "tool_calls_made": [
+        "get_support_tickets",
+        "get_ticket_status"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 146.09,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "BIL-006",
+      "category": "billing",
+      "query": "When is my next invoice due?",
+      "response": "Your next invoice for June 2026, in the amount of $299.00, was due on June 1, 2026. Please check your account portal to finalize this payment at your earliest convenience.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 154.05,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "ACC-004",
+      "category": "account_access",
+      "query": "What admin permissions do I have as an Enterprise customer?",
+      "response": "As an Enterprise customer, your account utilizes granular Role-Based Access Control. This system features four predefined roles: Administrator, Manager, Agent, and Viewer. You have the flexibility to customize the specific permissions for each of these roles to align with your internal organizational structure. Administrators hold primary control over the platform, including the ability to manage team roles and permissions, configure security settings like SSO and 2FA, and oversee global notification preferences.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 163.14,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "SUB-001",
+      "category": "subscription",
+      "query": "What plan am I currently on?",
+      "response": "You are currently subscribed to our Enterprise Annual plan, which is active and set to automatically renew on January 1, 2027.",
+      "tool_calls_made": [
+        "get_customer_profile",
+        "get_subscription_status"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 171.28,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "ACC-009",
+      "category": "account_access",
+      "query": "How do I deactivate a user who has left the company?",
+      "response": "To deactivate a user who has left your company, you should access your account settings as an Administrator. Navigate to the Team Management section within your settings, where you can manage user access and permissions to deactivate or remove the account for that specific team member.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 0.8,
+      "reasoning_type": "policy_application",
+      "latency_s": 180.69,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "ACC-007",
+      "category": "account_access",
+      "query": "How do I manage API keys for my team?",
+      "response": "To manage API keys for your team, please navigate to the Developer Settings page within your account. As an Administrator, you have the authority to generate these keys, which are required for all REST API requests. You can scope these keys to specific permissions to ensure appropriate access levels for your team members.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 190.36,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "SUB-006",
+      "category": "subscription",
+      "query": "What is the difference between my Enterprise Annual plan and a monthly plan?",
+      "response": "As an Enterprise Annual customer, your plan provides a higher tier of service compared to a monthly subscription, primarily characterized by priority support, including a 1-hour response time for critical issues and access to dedicated phone support. While monthly and annual subscriptions have standard refund and cancellation terms, your Enterprise contract includes specific terms tailored to your agreement, which you can review with your account executive. Additionally, your Enterprise plan offers granular Role-Based Access Control and other advanced administrative features not necessarily emphasized in standard monthly plans.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 0.9,
+      "reasoning_type": "policy_application",
+      "latency_s": 199.56,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "REF-001",
+      "category": "refund_requests",
+      "query": "Can I get a refund for the duplicate charge in March?",
+      "response": "I have reviewed your account and can confirm that the duplicate charge from March 2026 was already identified and resolved. A credit of $299.00 was applied to your April 2026 invoice, which offset the charge and resulted in a net balance of $0.00 for that period. Because the matter has been rectified with this credit, no further refund action is necessary. For any additional questions regarding your specific Enterprise contract terms, please reach out to your dedicated account manager.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 208.94,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "REF-006",
+      "category": "refund_requests",
+      "query": "What is your refund policy for annual subscriptions?",
+      "response": "As an Enterprise customer, your refund eligibility is specifically governed by the terms outlined in your signed Enterprise agreement. For standard annual subscriptions, the policy permits a prorated refund for unused months, less a 10% administrative fee, provided that no more than six months of the annual term have elapsed. I recommend you consult your dedicated account manager to discuss the specific terms applicable to your contract.",
+      "tool_calls_made": [
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 218.08,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "PRD-001",
+      "category": "product_problems",
+      "query": "All my users can't log in via SSO since we updated Azure AD.",
+      "response": "I understand the frustration caused by the current SSO login issues. I have looked into the status of your account and can confirm that our technical team is currently managing an open, high-priority support ticket regarding this matter. The disruption stems from an Azure AD configuration update where the required new CloudDesk callback endpoint, introduced in v3.5.0, was omitted from your redirect URIs. We are currently awaiting your confirmation that this specific URL has been added to your Azure AD configuration to resolve the login failure for your team.",
+      "tool_calls_made": [
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_documentation"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "root_cause_analysis",
+      "latency_s": 228.06,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "PRD-006",
+      "category": "product_problems",
+      "query": "Is my API rate limit issue still being worked on?",
+      "response": "Yes, our technical team is actively working on your API rate limit issue. The ticket remains in progress, and we have a walkthrough scheduled with you on June 25, 2026, to implement the recommended migration to our bulk-import endpoint, which will resolve the current constraints you are encountering.",
+      "tool_calls_made": [
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_documentation"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 237.39,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "BIL-002",
+      "category": "billing",
+      "query": "Why was my April invoice $0?",
+      "response": "Your April 2026 invoice resulted in a $0.00 balance because a $299.00 credit was applied to your account. This credit was issued to resolve a duplicate charge that occurred in March 2026.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 246.39,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "ACC-001",
+      "category": "account_access",
+      "query": "How many team members do I currently have on my account?",
+      "response": "The current account information does not specify the exact number of team members active on your account. I recommend accessing the Team Management section within your Administrator settings, where you can view a complete directory of all assigned users.",
+      "tool_calls_made": [
+        "get_customer_profile",
+        "get_subscription_status"
+      ],
+      "confidence": 0.0,
+      "reasoning_type": "decision_support",
+      "latency_s": 254.59,
+      "passed": false,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "BIL-007",
+      "category": "billing",
+      "query": "What currency am I billed in?",
+      "response": "Your account is billed in United States Dollars (USD), as reflected consistently across your recent billing history.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 263.23,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "ACC-005",
+      "category": "account_access",
+      "query": "How do I onboard a new team member to CloudDesk?",
+      "response": "To onboard a new team member to your CloudDesk organization, please navigate to 'Settings' followed by 'Team Management' and then 'Invite Members'. From there, enter the email addresses of your colleagues, assign them a role such as Administrator, Manager, Agent, or Viewer, and click 'Send Invitations'. Each invitee will receive a welcome email with a unique sign-up link that remains valid for seven days. Additionally, as an Enterprise client, you may reach out to your dedicated success manager via onboarding@clouddesk.com to schedule a complimentary onboarding session for your team.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 272.26,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "SUB-002",
+      "category": "subscription",
+      "query": "When does my subscription renew?",
+      "response": "Your Enterprise Annual subscription is currently active and is set to renew on January 1, 2027.",
+      "tool_calls_made": [
+        "get_subscription_status"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 280.22,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "ACC-010",
+      "category": "account_access",
+      "query": "What is my current account status and plan tier?",
+      "response": "I have verified your account details, and I can confirm that your Enterprise Annual subscription is currently active. You are set to continue on your Enterprise plan, with your next renewal scheduled for January 1, 2027.",
+      "tool_calls_made": [
+        "get_customer_profile",
+        "get_subscription_status"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 288.12,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "SUB-007",
+      "category": "subscription",
+      "query": "What happens if I cancel my subscription mid-year?",
+      "response": "As an Enterprise client, your specific refund and cancellation terms are governed by the provisions within your signed Enterprise agreement rather than the standard annual policy. I recommend that you consult your dedicated account manager to discuss the specific implications for your contract should you decide to cancel mid-year.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 297.3,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "REF-002",
+      "category": "refund_requests",
+      "query": "How long does a refund or credit take to process?",
+      "response": "Once a refund or credit has been approved, you can expect the funds to be returned to your original payment method within 5 to 10 business days.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 306.31,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "REF-007",
+      "category": "refund_requests",
+      "query": "Can I get a refund for unused months if I cancel early?",
+      "response": "As an Enterprise client, your specific refund and cancellation terms are governed by the provisions outlined in your signed Enterprise agreement, rather than our standard annual or monthly policies. I recommend that you contact your dedicated account manager directly to discuss the specific implications for your contract should you decide to cancel your subscription mid-term.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 315.59,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "PRD-002",
+      "category": "product_problems",
+      "query": "What is the SSO callback URL I need to add to Azure AD?",
+      "response": "The available documentation regarding SSO configuration confirms that CloudDesk supports SAML 2.0 and OpenID Connect protocols and directs users to the Authentication Settings in the Admin panel to input IdP metadata. However, the specific SSO callback URL required for Azure AD integration is not contained within the provided documentation. I recommend reaching out to your dedicated success manager via onboarding@clouddesk.com for the exact endpoint configuration details required for your Azure environment.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 0.3,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 325.09,
+      "passed": false,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "PRD-007",
+      "category": "product_problems",
+      "query": "My usage has been growing \u2014 could that be causing the API errors?",
+      "response": "I have reviewed your account's performance metrics, and there is no indication that your recent growth in usage is contributing to API errors. In fact, your API error rate has decreased over the last three months, moving from 0.011 in April to 0.007 in June, even as your volume of API calls has increased. Your platform remains stable and is currently operating within expected performance parameters.",
+      "tool_calls_made": [
+        "get_usage_analytics"
+      ],
+      "confidence": 0.9,
+      "reasoning_type": "root_cause_analysis",
+      "latency_s": 337.95,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "BIL-003",
+      "category": "billing",
+      "query": "Do I have any unpaid invoices right now?",
+      "response": "I have reviewed your account records, and I can confirm that you currently have one outstanding invoice for June 2026. This invoice, in the amount of $299.00 USD, was due on June 1, 2026, and remains in a pending status. Please ensure this is settled at your earliest convenience to keep your account in good standing.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 345.97,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "BIL-008",
+      "category": "billing",
+      "query": "Show me my billing history for the past few months.",
+      "response": "I have reviewed your billing history for the past three months. For June 2026, you have one pending invoice of $299.00 USD. Regarding your previous activity, your May 2026 invoice of $299.00 USD was successfully paid on May 3, 2026. For April 2026, your balance was $0.00 USD, as this invoice included a $299.00 credit applied to account for a duplicate charge from March. Please ensure the outstanding June balance is settled at your earliest convenience to maintain your account's good standing.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 354.19,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "ACC-006",
+      "category": "account_access",
+      "query": "How does a user reset their password?",
+      "response": "To reset a password for your CloudDesk account, please navigate to the login page at app.clouddesk.com and select the 'Forgot Password' link. This will trigger a password reset email to your registered account address, which will guide you through the process of setting a new, secure password. If you encounter any issues with this process, our support team is available to assist you via the live chat in your dashboard or by emailing support@clouddesk.com.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 0.0,
+      "reasoning_type": "decision_support",
+      "latency_s": 363.53,
+      "passed": false,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "SUB-003",
+      "category": "subscription",
+      "query": "Is my account still active?",
+      "response": "I have verified your account status and can confirm that your Enterprise Annual subscription is fully active and in good standing. You are currently set to continue on your current plan through the end of your contract term on January 1, 2027.",
+      "tool_calls_made": [
+        "get_customer_profile",
+        "get_subscription_status"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 371.26,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "SUB-008",
+      "category": "subscription",
+      "query": "When did I start my current plan?",
+      "response": "Your current Enterprise Annual plan began on January 1, 2025.",
+      "tool_calls_made": [
+        "get_subscription_status"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 380.0,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "REF-003",
+      "category": "refund_requests",
+      "query": "Will I get cash back or a credit for the March duplicate charge?",
+      "response": "I have reviewed your billing history, and I can confirm that the $299.00 duplicate charge from March was fully resolved in April. A credit of $299.00 was applied to your account at that time, which resulted in a net balance of $0.00 for your April invoice. No further action is required regarding that specific transaction.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 389.01,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "REF-008",
+      "category": "refund_requests",
+      "query": "I was charged $299 twice. Has this been fixed?",
+      "response": "I have verified your account records and can confirm that the duplicate charge from March has been fully resolved. A credit of $299.00 was applied to your account in April 2026, which effectively offset the duplicate billing and resulted in a net balance of $0.00 for that month. No further action is required on your part regarding that transaction.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 398.25,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "PRD-003",
+      "category": "product_problems",
+      "query": "We keep getting 429 errors when importing contacts via the API.",
+      "response": "I have looked into the HTTP 429 errors you are experiencing with your contact imports. This is occurring because your current process attempts to send 50,000 records in a single batch, which exceeds our standard API rate limits. Our technical team has already identified a solution: you should migrate your process to the '/api/v1/bulk-import' endpoint, which supports larger batches and carries no per-minute cap for our Enterprise clients. We also recommend implementing exponential backoff in your request logic. This matter is currently being tracked as an open support ticket (ID: 9f03d189-ef02-4691-9ebd-603cd8470c15), and our API team has a walkthrough call scheduled for June 25, 2026, to ensure this is resolved for you.",
+      "tool_calls_made": [
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_documentation"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "root_cause_analysis",
+      "latency_s": 408.19,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "PRD-008",
+      "category": "product_problems",
+      "query": "How do I fix the SSO error AADSTS50011?",
+      "response": "I understand you are encountering an AADSTS50011 error during your Azure AD SSO configuration. While I can confirm that CloudDesk supports SAML 2.0 and OpenID Connect protocols, the specific SSO callback URL required for your Azure integration is not currently listed in our public documentation. To obtain the exact endpoint configuration details required for your environment, please contact your dedicated success manager directly at onboarding@clouddesk.com, as they are best positioned to provide the precise URL needed to resolve this error.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "decision_support",
+      "latency_s": 417.98,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "BIL-004",
+      "category": "billing",
+      "query": "How much have I spent in total with CloudDesk?",
+      "response": "I have reviewed your billing history for the last three months. You have paid a total of $299.00 USD for your service during this period, which covers your May 2026 invoice. Please note that the April 2026 balance was $0.00 due to a credit applied for a duplicate charge in March, and your June 2026 invoice of $299.00 remains pending.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 426.34,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "ACC-002",
+      "category": "account_access",
+      "query": "How do I add more users to my account?",
+      "response": "To add new users to your CloudDesk organization, please navigate to 'Settings', select 'Team Management', and then click on 'Invite Members'. You will be able to enter the email addresses of your colleagues and assign each one a specific role\u2014such as Administrator, Manager, Agent, or Viewer\u2014before sending out the invitations.",
+      "tool_calls_made": [
+        "search_documentation",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 435.72,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "BIL-009",
+      "category": "billing",
+      "query": "Was I charged in February 2026?",
+      "response": "I have thoroughly reviewed your account's billing history. Our records confirm invoicing activity for April, May, and June 2026; however, the available billing data does not contain any record of a charge or invoice issued for February 2026.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 444.5,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    }
+  ]
+}

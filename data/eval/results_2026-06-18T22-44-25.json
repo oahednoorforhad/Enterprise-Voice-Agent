@@ -1,0 +1,214 @@
+{
+  "run_id": "2026-06-18T22-44-25",
+  "total": 10,
+  "errors": 2,
+  "customer_id": "c63d2f89-9aa3-4157-8205-a7d6cfc23207",
+  "category_filter": "billing",
+  "metrics": {
+    "overall": {
+      "retrieval": 0.9375,
+      "reasoning": 1.0,
+      "hallucination": 1.0,
+      "quality": 0.75,
+      "pass_rate": 0.8
+    },
+    "by_category": {
+      "billing": {
+        "retrieval": 0.9375,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.75,
+        "count": 8,
+        "pass_rate": 1.0
+      }
+    }
+  },
+  "scenarios": [
+    {
+      "id": "BIL-005",
+      "category": "billing",
+      "query": "What is my monthly charge?",
+      "response": "Your current monthly charge for the Enterprise plan is $299.00 USD, which is consistent with the invoicing from May and June 2026.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 4.94,
+      "passed": true,
+      "scores": {
+        "retrieval": 0.5,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "BIL-006",
+      "category": "billing",
+      "query": "When is my next invoice due?",
+      "response": "Your invoice for June 2026 was due on June 1, 2026. As this remains outstanding, I encourage you to address it promptly to ensure your account remains in good standing.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "policy_application",
+      "latency_s": 5.42,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "BIL-001",
+      "category": "billing",
+      "query": "Why was I charged twice in March 2026?",
+      "response": "I have reviewed your billing records, and I can confirm that the duplicate charge you noted from March 2026 was identified and subsequently addressed. A $299.00 credit was applied to your April 2026 invoice, which successfully balanced your account and resolved the discrepancy.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 5.91,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "BIL-009",
+      "category": "billing",
+      "query": "Was I charged in February 2026?",
+      "response": "I have reviewed your billing history, and while I have confirmed records for your account from April through June 2026, the available billing records do not contain data regarding a charge for February 2026.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "root_cause_analysis",
+      "latency_s": 8.72,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "BIL-004",
+      "category": "billing",
+      "query": "How much have I spent in total with CloudDesk?",
+      "response": "Based on a review of your billing history, your total expenditure with CloudDesk to date is $299.00 USD. This total accounts for your May 2026 payment, while the April 2026 invoice was offset by a credit for the duplicate charge from March, and your June 2026 invoice remains pending.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 9.2,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "BIL-010",
+      "category": "billing",
+      "query": "My bank statement shows two charges in March \u2014 is that a mistake?",
+      "response": "I have reviewed your billing history, and I can confirm that the duplicate charge you noted from March was identified and fully addressed. You will see that your April 2026 invoice includes a $299 credit, which effectively balanced the account and accounted for that prior duplicate charge.",
+      "tool_calls_made": [
+        "get_billing_history",
+        "get_support_tickets",
+        "get_ticket_status",
+        "search_policies"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 10.55,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 0.5
+      }
+    },
+    {
+      "id": "BIL-003",
+      "category": "billing",
+      "query": "Do I have any unpaid invoices right now?",
+      "response": "I have reviewed your account billing, and I can confirm that you currently have one outstanding invoice for June 2026 in the amount of $299.00 USD, which was due on June 1, 2026. Please ensure this is settled promptly to maintain your account in good standing.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 12.22,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "BIL-008",
+      "category": "billing",
+      "query": "Show me my billing history for the past few months.",
+      "response": "I have reviewed your billing history for the past three months. For April 2026, your invoice was $0.00, as it included a $299.00 credit to resolve the duplicate charge from March. Your May 2026 invoice was successfully paid in the amount of $299.00. Currently, your June 2026 invoice for $299.00 remains outstanding, with a due date of June 1, 2026.",
+      "tool_calls_made": [
+        "get_billing_history"
+      ],
+      "confidence": 1.0,
+      "reasoning_type": "evidence_corroboration",
+      "latency_s": 12.95,
+      "passed": true,
+      "scores": {
+        "retrieval": 1.0,
+        "reasoning": 1.0,
+        "hallucination": 1.0,
+        "quality": 1.0
+      }
+    },
+    {
+      "id": "BIL-007",
+      "category": "billing",
+      "query": "What currency am I billed in?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 13.19,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    },
+    {
+      "id": "BIL-002",
+      "category": "billing",
+      "query": "Why was my April invoice $0?",
+      "error": "Server error '500 Internal Server Error' for url 'http://localhost:8000/api/v1/chat/'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "latency_s": 13.88,
+      "passed": false,
+      "scores": {
+        "retrieval": 0.0,
+        "reasoning": 0.0,
+        "hallucination": 0.0,
+        "quality": 0.0
+      }
+    }
+  ]
+}

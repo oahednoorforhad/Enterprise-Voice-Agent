@@ -13,6 +13,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Index,
+    Integer,
     Numeric,
     String,
     Text,
@@ -208,6 +209,8 @@ class ConversationSession(TimestampMixin, Base):
     language: Mapped[str] = mapped_column(String(10), default="en")
     summary: Mapped[str | None] = mapped_column(Text)
     tools_used: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    voice_session_id: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    audio_duration_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # Relationships
     customer: Mapped["Customer"] = relationship(back_populates="conversation_sessions")

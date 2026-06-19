@@ -49,6 +49,7 @@ from app.schemas.tools import ToolResult
 from app.tools.analytics.functions import get_usage_analytics
 from app.tools.billing.functions import get_billing_history
 from app.tools.customer.functions import get_customer_profile, get_subscription_status
+from app.tools.history.functions import get_session_history
 from app.tools.knowledge.functions import search_documentation, search_policies
 from app.tools.ticket.functions import get_support_tickets, get_ticket_status
 
@@ -148,6 +149,10 @@ DEFAULT_TOOL_REGISTRY: dict[str, _ToolEntry] = {
     ),
     "get_usage_analytics": _ToolEntry(
         func=get_usage_analytics,
+        kwargs_builder=_build_standard_kwargs,
+    ),
+    "get_session_history": _ToolEntry(
+        func=get_session_history,
         kwargs_builder=_build_standard_kwargs,
     ),
 }

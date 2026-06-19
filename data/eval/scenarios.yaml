@@ -1,0 +1,772 @@
+# EVA Evaluation Dataset — 50 scenarios
+# Customer: Arman Hossain / NexaFlow Technologies (c63d2f89-9aa3-4157-8205-a7d6cfc23207)
+#
+# Schema per scenario:
+#   id                      unique identifier
+#   category                billing | subscription | refund_requests | product_problems | account_access
+#   query                   the user question sent to EVA
+#   expected_tools          tools EVA must call (recall check)
+#   answer_must_contain     at least ONE of these keywords must appear in the response
+#   answer_must_not_contain ALL of these phrases must be absent (hallucination check)
+#   min_confidence          minimum acceptable reasoning_trace.confidence
+#   expected_reasoning_type expected reasoning_trace.reasoning_type
+
+# ── BILLING (10) ──────────────────────────────────────────────────────────────
+
+- id: BIL-001
+  category: billing
+  query: "Why was I charged twice in March 2026?"
+  expected_tools:
+    - get_billing_history
+  answer_must_contain:
+    - "duplicate"
+    - "twice"
+    - "March"
+  answer_must_not_contain:
+    - "no record"
+    - "cannot find"
+  min_confidence: 0.7
+  expected_reasoning_type: root_cause_analysis
+
+- id: BIL-002
+  category: billing
+  query: "Why was my April invoice $0?"
+  expected_tools:
+    - get_billing_history
+  answer_must_contain:
+    - "credit"
+    - "April"
+  answer_must_not_contain:
+    - "no charges"
+    - "free"
+    - "cancelled"
+  min_confidence: 0.7
+  expected_reasoning_type: root_cause_analysis
+
+- id: BIL-003
+  category: billing
+  query: "Do I have any unpaid invoices right now?"
+  expected_tools:
+    - get_billing_history
+  answer_must_contain:
+    - "pending"
+    - "June"
+  answer_must_not_contain:
+    - "overdue"
+    - "no invoices"
+  min_confidence: 0.65
+  expected_reasoning_type: evidence_corroboration
+
+- id: BIL-004
+  category: billing
+  query: "How much have I spent in total with CloudDesk?"
+  expected_tools:
+    - get_billing_history
+  answer_must_contain:
+    - "$"
+    - "paid"
+  answer_must_not_contain:
+    - "no billing history"
+    - "cannot calculate"
+  min_confidence: 0.65
+  expected_reasoning_type: evidence_corroboration
+
+- id: BIL-005
+  category: billing
+  query: "What is my monthly charge?"
+  expected_tools:
+    - get_billing_history
+    - get_subscription_status
+  answer_must_contain:
+    - "299"
+    - "month"
+  answer_must_not_contain:
+    - "free"
+    - "no subscription"
+  min_confidence: 0.7
+  expected_reasoning_type: evidence_corroboration
+
+- id: BIL-006
+  category: billing
+  query: "When is my next invoice due?"
+  expected_tools:
+    - get_billing_history
+  answer_must_contain:
+    - "June"
+    - "pending"
+  answer_must_not_contain:
+    - "no upcoming"
+    - "cannot determine"
+  min_confidence: 0.6
+  expected_reasoning_type: evidence_corroboration
+
+- id: BIL-007
+  category: billing
+  query: "What currency am I billed in?"
+  expected_tools:
+    - get_billing_history
+  answer_must_contain:
+    - "USD"
+  answer_must_not_contain:
+    - "unknown currency"
+    - "multiple currencies"
+  min_confidence: 0.6
+  expected_reasoning_type: evidence_corroboration
+
+- id: BIL-008
+  category: billing
+  query: "Show me my billing history for the past few months."
+  expected_tools:
+    - get_billing_history
+  answer_must_contain:
+    - "299"
+    - "paid"
+  answer_must_not_contain:
+    - "no records"
+    - "no billing"
+  min_confidence: 0.6
+  expected_reasoning_type: evidence_corroboration
+
+- id: BIL-009
+  category: billing
+  query: "Was I charged in February 2026?"
+  expected_tools:
+    - get_billing_history
+  answer_must_contain:
+    - "February"
+    - "299"
+  answer_must_not_contain:
+    - "no charge"
+    - "not found"
+  min_confidence: 0.65
+  expected_reasoning_type: evidence_corroboration
+
+- id: BIL-010
+  category: billing
+  query: "My bank statement shows two charges in March — is that a mistake?"
+  expected_tools:
+    - get_billing_history
+  answer_must_contain:
+    - "duplicate"
+    - "error"
+    - "credit"
+  answer_must_not_contain:
+    - "intentional"
+    - "two subscriptions"
+  min_confidence: 0.75
+  expected_reasoning_type: root_cause_analysis
+
+# ── SUBSCRIPTION (10) ─────────────────────────────────────────────────────────
+
+- id: SUB-001
+  category: subscription
+  query: "What plan am I currently on?"
+  expected_tools:
+    - get_subscription_status
+  answer_must_contain:
+    - "Enterprise"
+    - "Annual"
+  answer_must_not_contain:
+    - "no subscription"
+    - "free plan"
+    - "Professional"
+  min_confidence: 0.7
+  expected_reasoning_type: evidence_corroboration
+
+- id: SUB-002
+  category: subscription
+  query: "When does my subscription renew?"
+  expected_tools:
+    - get_subscription_status
+  answer_must_contain:
+    - "2027"
+    - "January"
+  answer_must_not_contain:
+    - "no end date"
+    - "already expired"
+  min_confidence: 0.7
+  expected_reasoning_type: evidence_corroboration
+
+- id: SUB-003
+  category: subscription
+  query: "Is my account still active?"
+  expected_tools:
+    - get_subscription_status
+    - get_customer_profile
+  answer_must_contain:
+    - "active"
+  answer_must_not_contain:
+    - "inactive"
+    - "suspended"
+    - "cancelled"
+  min_confidence: 0.7
+  expected_reasoning_type: evidence_corroboration
+
+- id: SUB-004
+  category: subscription
+  query: "How many seats does my plan include?"
+  expected_tools:
+    - get_customer_profile
+    - get_subscription_status
+  answer_must_contain:
+    - "50"
+    - "seat"
+  answer_must_not_contain:
+    - "unlimited"
+    - "no seat limit recorded"
+  min_confidence: 0.6
+  expected_reasoning_type: evidence_corroboration
+
+- id: SUB-005
+  category: subscription
+  query: "Will my subscription auto-renew?"
+  expected_tools:
+    - get_subscription_status
+  answer_must_contain:
+    - "renew"
+    - "January 2027"
+  answer_must_not_contain:
+    - "cancelled"
+    - "will not renew"
+  min_confidence: 0.65
+  expected_reasoning_type: evidence_corroboration
+
+- id: SUB-006
+  category: subscription
+  query: "What is the difference between my Enterprise Annual plan and a monthly plan?"
+  expected_tools:
+    - get_subscription_status
+    - search_policies
+  answer_must_contain:
+    - "annual"
+    - "Enterprise"
+  answer_must_not_contain:
+    - "no difference"
+    - "same price"
+  min_confidence: 0.6
+  expected_reasoning_type: policy_application
+
+- id: SUB-007
+  category: subscription
+  query: "What happens if I cancel my subscription mid-year?"
+  expected_tools:
+    - get_subscription_status
+    - search_policies
+  answer_must_contain:
+    - "cancel"
+    - "policy"
+  answer_must_not_contain:
+    - "no refund policy"
+    - "immediate termination with no notice"
+  min_confidence: 0.6
+  expected_reasoning_type: policy_application
+
+- id: SUB-008
+  category: subscription
+  query: "When did I start my current plan?"
+  expected_tools:
+    - get_subscription_status
+  answer_must_contain:
+    - "January 2025"
+    - "2025"
+  answer_must_not_contain:
+    - "unknown start date"
+    - "cannot find"
+  min_confidence: 0.7
+  expected_reasoning_type: evidence_corroboration
+
+- id: SUB-009
+  category: subscription
+  query: "I want to upgrade to a higher tier — what options do I have?"
+  expected_tools:
+    - get_subscription_status
+    - search_policies
+  answer_must_contain:
+    - "Enterprise"
+    - "plan"
+  answer_must_not_contain:
+    - "no upgrade available"
+    - "already on highest"
+  min_confidence: 0.55
+  expected_reasoning_type: decision_support
+
+- id: SUB-010
+  category: subscription
+  query: "What benefits does the Enterprise Annual plan include?"
+  expected_tools:
+    - get_subscription_status
+    - search_documentation
+  answer_must_contain:
+    - "Enterprise"
+    - "Annual"
+  answer_must_not_contain:
+    - "basic features only"
+    - "no documentation"
+  min_confidence: 0.6
+  expected_reasoning_type: evidence_corroboration
+
+# ── REFUND REQUESTS (10) ──────────────────────────────────────────────────────
+
+- id: REF-001
+  category: refund_requests
+  query: "Can I get a refund for the duplicate charge in March?"
+  expected_tools:
+    - get_billing_history
+    - search_policies
+  answer_must_contain:
+    - "credit"
+    - "duplicate"
+    - "March"
+  answer_must_not_contain:
+    - "not eligible"
+    - "no refund policy"
+  min_confidence: 0.7
+  expected_reasoning_type: policy_application
+
+- id: REF-002
+  category: refund_requests
+  query: "How long does a refund or credit take to process?"
+  expected_tools:
+    - search_policies
+  answer_must_contain:
+    - "days"
+    - "credit"
+  answer_must_not_contain:
+    - "no policy"
+    - "indefinite"
+  min_confidence: 0.6
+  expected_reasoning_type: policy_application
+
+- id: REF-003
+  category: refund_requests
+  query: "Will I get cash back or a credit for the March duplicate charge?"
+  expected_tools:
+    - get_billing_history
+    - search_policies
+  answer_must_contain:
+    - "credit"
+    - "April"
+  answer_must_not_contain:
+    - "cash refund to your bank"
+    - "wire transfer"
+  min_confidence: 0.7
+  expected_reasoning_type: policy_application
+
+- id: REF-004
+  category: refund_requests
+  query: "How do I formally request a refund?"
+  expected_tools:
+    - search_policies
+  answer_must_contain:
+    - "support"
+    - "ticket"
+    - "contact"
+  answer_must_not_contain:
+    - "no process"
+    - "not possible"
+  min_confidence: 0.6
+  expected_reasoning_type: policy_application
+
+- id: REF-005
+  category: refund_requests
+  query: "Was the credit for the March overcharge already applied?"
+  expected_tools:
+    - get_billing_history
+  answer_must_contain:
+    - "April"
+    - "credit"
+    - "applied"
+  answer_must_not_contain:
+    - "not yet applied"
+    - "pending credit"
+  min_confidence: 0.75
+  expected_reasoning_type: evidence_corroboration
+
+- id: REF-006
+  category: refund_requests
+  query: "What is your refund policy for annual subscriptions?"
+  expected_tools:
+    - search_policies
+  answer_must_contain:
+    - "refund"
+    - "policy"
+    - "annual"
+  answer_must_not_contain:
+    - "no refund policy exists"
+    - "full refund always"
+  min_confidence: 0.6
+  expected_reasoning_type: policy_application
+
+- id: REF-007
+  category: refund_requests
+  query: "Can I get a refund for unused months if I cancel early?"
+  expected_tools:
+    - get_subscription_status
+    - search_policies
+  answer_must_contain:
+    - "cancel"
+    - "policy"
+    - "annual"
+  answer_must_not_contain:
+    - "full refund guaranteed"
+    - "no questions asked"
+  min_confidence: 0.6
+  expected_reasoning_type: policy_application
+
+- id: REF-008
+  category: refund_requests
+  query: "I was charged $299 twice. Has this been fixed?"
+  expected_tools:
+    - get_billing_history
+    - get_support_tickets
+  answer_must_contain:
+    - "credit"
+    - "resolved"
+    - "April"
+  answer_must_not_contain:
+    - "not resolved"
+    - "still pending"
+  min_confidence: 0.75
+  expected_reasoning_type: evidence_corroboration
+
+- id: REF-009
+  category: refund_requests
+  query: "Are there any late fees I need to worry about?"
+  expected_tools:
+    - get_billing_history
+    - search_policies
+  answer_must_contain:
+    - "late"
+    - "grace"
+    - "fee"
+  answer_must_not_contain:
+    - "no late fee policy"
+    - "immediate penalty"
+  min_confidence: 0.6
+  expected_reasoning_type: policy_application
+
+- id: REF-010
+  category: refund_requests
+  query: "I dispute the March charge — what are my options?"
+  expected_tools:
+    - get_billing_history
+    - search_policies
+  answer_must_contain:
+    - "dispute"
+    - "credit"
+    - "support"
+  answer_must_not_contain:
+    - "no dispute process"
+    - "charge is final"
+  min_confidence: 0.65
+  expected_reasoning_type: decision_support
+
+# ── PRODUCT PROBLEMS (10) ─────────────────────────────────────────────────────
+
+- id: PRD-001
+  category: product_problems
+  query: "All my users can't log in via SSO since we updated Azure AD."
+  expected_tools:
+    - get_support_tickets
+    - search_documentation
+  answer_must_contain:
+    - "SSO"
+    - "Azure"
+    - "callback"
+  answer_must_not_contain:
+    - "no SSO support"
+    - "no open ticket"
+  min_confidence: 0.7
+  expected_reasoning_type: root_cause_analysis
+
+- id: PRD-002
+  category: product_problems
+  query: "What is the SSO callback URL I need to add to Azure AD?"
+  expected_tools:
+    - search_documentation
+  answer_must_contain:
+    - "callback"
+    - "URL"
+    - "SSO"
+  answer_must_not_contain:
+    - "no callback URL"
+    - "contact Microsoft"
+  min_confidence: 0.65
+  expected_reasoning_type: policy_application
+
+- id: PRD-003
+  category: product_problems
+  query: "We keep getting 429 errors when importing contacts via the API."
+  expected_tools:
+    - get_support_tickets
+    - search_documentation
+  answer_must_contain:
+    - "rate limit"
+    - "bulk"
+    - "import"
+  answer_must_not_contain:
+    - "no rate limiting"
+    - "upgrade required"
+  min_confidence: 0.7
+  expected_reasoning_type: root_cause_analysis
+
+- id: PRD-004
+  category: product_problems
+  query: "What is the bulk import API endpoint and how should I use it?"
+  expected_tools:
+    - search_documentation
+  answer_must_contain:
+    - "bulk"
+    - "import"
+    - "endpoint"
+  answer_must_not_contain:
+    - "no bulk endpoint"
+    - "not supported"
+  min_confidence: 0.65
+  expected_reasoning_type: policy_application
+
+- id: PRD-005
+  category: product_problems
+  query: "My CSV export only downloaded 3,200 out of 12,000 contacts."
+  expected_tools:
+    - get_support_tickets
+  answer_must_contain:
+    - "export"
+    - "CSV"
+    - "fixed"
+  answer_must_not_contain:
+    - "no export issues"
+    - "not a known bug"
+  min_confidence: 0.7
+  expected_reasoning_type: root_cause_analysis
+
+- id: PRD-006
+  category: product_problems
+  query: "Is my API rate limit issue still being worked on?"
+  expected_tools:
+    - get_support_tickets
+  answer_must_contain:
+    - "in_progress"
+    - "rate limit"
+    - "API"
+  answer_must_not_contain:
+    - "no open ticket"
+    - "resolved"
+  min_confidence: 0.7
+  expected_reasoning_type: evidence_corroboration
+
+- id: PRD-007
+  category: product_problems
+  query: "My usage has been growing — could that be causing the API errors?"
+  expected_tools:
+    - get_usage_analytics
+    - get_support_tickets
+  answer_must_contain:
+    - "rate limit"
+    - "API"
+    - "usage"
+  answer_must_not_contain:
+    - "no usage data"
+    - "unrelated"
+  min_confidence: 0.65
+  expected_reasoning_type: root_cause_analysis
+
+- id: PRD-008
+  category: product_problems
+  query: "How do I fix the SSO error AADSTS50011?"
+  expected_tools:
+    - search_documentation
+    - get_support_tickets
+  answer_must_contain:
+    - "reply URL"
+    - "Azure"
+    - "redirect"
+  answer_must_not_contain:
+    - "unknown error"
+    - "contact Microsoft directly"
+  min_confidence: 0.65
+  expected_reasoning_type: policy_application
+
+- id: PRD-009
+  category: product_problems
+  query: "Our error rate jumped in November — what happened?"
+  expected_tools:
+    - get_usage_analytics
+    - get_support_tickets
+  answer_must_contain:
+    - "error rate"
+    - "November"
+  answer_must_not_contain:
+    - "no data"
+    - "stable throughout"
+  min_confidence: 0.65
+  expected_reasoning_type: root_cause_analysis
+
+- id: PRD-010
+  category: product_problems
+  query: "Which of my support tickets are still open or in progress?"
+  expected_tools:
+    - get_support_tickets
+  answer_must_contain:
+    - "open"
+    - "in_progress"
+    - "SSO"
+  answer_must_not_contain:
+    - "all resolved"
+    - "no open tickets"
+  min_confidence: 0.7
+  expected_reasoning_type: evidence_corroboration
+
+# ── ACCOUNT ACCESS (10) ───────────────────────────────────────────────────────
+
+- id: ACC-001
+  category: account_access
+  query: "How many team members do I currently have on my account?"
+  expected_tools:
+    - get_customer_profile
+  answer_must_contain:
+    - "50"
+    - "seat"
+    - "user"
+  answer_must_not_contain:
+    - "unlimited"
+    - "unknown number"
+  min_confidence: 0.65
+  expected_reasoning_type: evidence_corroboration
+
+- id: ACC-002
+  category: account_access
+  query: "How do I add more users to my account?"
+  expected_tools:
+    - get_subscription_status
+    - search_documentation
+  answer_must_contain:
+    - "seat"
+    - "user"
+    - "add"
+  answer_must_not_contain:
+    - "not possible"
+    - "contact sales only"
+  min_confidence: 0.6
+  expected_reasoning_type: policy_application
+
+- id: ACC-003
+  category: account_access
+  query: "How do I set up SSO for my team?"
+  expected_tools:
+    - search_documentation
+  answer_must_contain:
+    - "SSO"
+    - "setup"
+    - "Azure"
+  answer_must_not_contain:
+    - "SSO not available"
+    - "not supported on your plan"
+  min_confidence: 0.6
+  expected_reasoning_type: policy_application
+
+- id: ACC-004
+  category: account_access
+  query: "What admin permissions do I have as an Enterprise customer?"
+  expected_tools:
+    - get_subscription_status
+    - search_documentation
+  answer_must_contain:
+    - "admin"
+    - "Enterprise"
+    - "permission"
+  answer_must_not_contain:
+    - "no admin access"
+    - "basic user only"
+  min_confidence: 0.6
+  expected_reasoning_type: policy_application
+
+- id: ACC-005
+  category: account_access
+  query: "How do I onboard a new team member to CloudDesk?"
+  expected_tools:
+    - search_documentation
+  answer_must_contain:
+    - "user"
+    - "invite"
+    - "onboard"
+  answer_must_not_contain:
+    - "not possible"
+    - "no onboarding guide"
+  min_confidence: 0.55
+  expected_reasoning_type: policy_application
+
+- id: ACC-006
+  category: account_access
+  query: "How does a user reset their password?"
+  expected_tools:
+    - search_documentation
+  answer_must_contain:
+    - "password"
+    - "reset"
+  answer_must_not_contain:
+    - "cannot reset"
+    - "contact your administrator only"
+  min_confidence: 0.6
+  expected_reasoning_type: policy_application
+
+- id: ACC-007
+  category: account_access
+  query: "How do I manage API keys for my team?"
+  expected_tools:
+    - search_documentation
+  answer_must_contain:
+    - "API"
+    - "key"
+  answer_must_not_contain:
+    - "no API key management"
+    - "not available on your plan"
+  min_confidence: 0.55
+  expected_reasoning_type: policy_application
+
+- id: ACC-008
+  category: account_access
+  query: "We added 5 new seats last January — are those users active now?"
+  expected_tools:
+    - get_support_tickets
+    - get_customer_profile
+  answer_must_contain:
+    - "seat"
+    - "January"
+    - "provisioned"
+  answer_must_not_contain:
+    - "no seat changes"
+    - "not found"
+  min_confidence: 0.65
+  expected_reasoning_type: evidence_corroboration
+
+- id: ACC-009
+  category: account_access
+  query: "How do I deactivate a user who has left the company?"
+  expected_tools:
+    - search_documentation
+  answer_must_contain:
+    - "deactivate"
+    - "user"
+    - "remove"
+  answer_must_not_contain:
+    - "cannot deactivate"
+    - "contact support to remove users"
+  min_confidence: 0.55
+  expected_reasoning_type: policy_application
+
+- id: ACC-010
+  category: account_access
+  query: "What is my current account status and plan tier?"
+  expected_tools:
+    - get_customer_profile
+    - get_subscription_status
+  answer_must_contain:
+    - "active"
+    - "Enterprise"
+  answer_must_not_contain:
+    - "inactive"
+    - "no subscription"
+    - "free"
+  min_confidence: 0.7
+  expected_reasoning_type: evidence_corroboration

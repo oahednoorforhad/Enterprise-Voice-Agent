@@ -19,3 +19,5 @@ class BillingRecordModel(BaseModel):
     created_at: datetime
     paid_at: datetime | None = None
     due_date: datetime | None = None
+    # Frontend display field: most relevant date for the record
+    date: datetime | None = None

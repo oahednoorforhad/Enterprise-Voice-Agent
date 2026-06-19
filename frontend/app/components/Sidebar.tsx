@@ -6,6 +6,7 @@ import {
   BarChart3,
   BookOpen,
   Users,
+  Mic,
   ChevronLeft,
   ChevronRight,
   Sun,
@@ -23,6 +24,7 @@ interface SidebarProps {
 const navItems = [
   { href: '/', label: 'Overview', icon: LayoutDashboard },
   { href: '/chat', label: 'Chat', icon: MessageSquare },
+  { href: '/voice', label: 'Voice', icon: Mic },
   { href: '/dashboard', label: 'Dashboard', icon: Users },
   { href: '/knowledge', label: 'Knowledge', icon: BookOpen },
   { href: '/analytics', label: 'Analytics', icon: BarChart3 },

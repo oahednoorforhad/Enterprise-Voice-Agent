@@ -253,7 +253,21 @@ const mockChatResponse: ChatResponse = {
 
 // ---- Public API ------------------------------------------------------------
 
+// ---- Voice types -----------------------------------------------------------
+
+export interface CallSummaryResult {
+  session_id: string
+  conversation_summary: string
+  sources_used: string[]
+  reasoning_summary: string
+  recommended_next_actions: string[]
+}
+
 export const api = {
+  // Voice
+  getCallSummary: (sessionId: string): Promise<ToolResult<CallSummaryResult>> =>
+    get<CallSummaryResult>(`/api/v1/voice/summary/${encodeURIComponent(sessionId)}`),
+
   // Chat
   chat: (req: ChatRequest): Promise<ToolResult<ChatResponse>> =>
     post<ChatResponse>('/api/v1/chat/', req),

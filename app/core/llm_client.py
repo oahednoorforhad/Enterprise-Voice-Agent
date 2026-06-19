@@ -66,6 +66,7 @@ class LLMClient:
         api_key: str | None = None,
         model_name: str | None = None,
         client: GenAiClient | None = None,
+        vertexai_enabled: bool | None = None,
     ) -> None:
         """Initialise the client.
 
@@ -73,28 +74,52 @@ class LLMClient:
         ----------
         api_key:
             Gemini API key. Falls back to ``settings.google_api_key``.
+            Not required when ``vertexai_enabled=True``.
         model_name:
             Gemini model name (e.g. ``"gemini-2.0-flash"``).
             Falls back to ``settings.gemini_model``.
         client:
             Pre-configured SDK client for dependency injection. When given,
-            ``api_key`` is ignored (the client already carries its own key).
+            ``api_key`` and ``vertexai_enabled`` are ignored.
+        vertexai_enabled:
+            Use Vertex AI instead of a Google AI API key.
+            Falls back to ``settings.vertexai_enabled``.
         """
         settings = get_settings()
 
-        resolved_key: str = api_key if api_key is not None else settings.google_api_key
-        if not resolved_key:
-            raise LLMClientError(
-                "No Google API key available. Set GOOGLE_API_KEY in your .env "
-                "or pass api_key to the constructor."
-            )
-
+        self._vertexai_enabled: bool = (
+            vertexai_enabled
+            if vertexai_enabled is not None
+            else settings.vertexai_enabled
+        )
         self._model_name: str = (
             model_name if model_name is not None else settings.gemini_model
         )
-        self._client: GenAiClient = client if client is not None else GenAiClient(
-            api_key=resolved_key
-        )
+
+        if client is not None:
+            self._client: GenAiClient = client
+        elif self._vertexai_enabled:
+            self._client = GenAiClient(
+                vertexai=True,
+                project=settings.gcp_project,
+                location=settings.gcp_location,
+            )
+        else:
+            resolved_key: str = api_key if api_key is not None else settings.google_api_key
+            if not resolved_key:
+                raise LLMClientError(
+                    "No Google API key available. Set GOOGLE_API_KEY in your .env "
+                    "or pass api_key to the constructor."
+                )
+            self._client = GenAiClient(api_key=resolved_key)
+
+    @property
+    def effective_audio_model(self) -> str:
+        """Return the correct Gemini Live audio model based on the active provider."""
+        settings = get_settings()
+        if self._vertexai_enabled:
+            return settings.gemini_audio_model_vertex
+        return settings.gemini_audio_model
 
     # ── Public API ───────────────────────────────────────────────────────
 

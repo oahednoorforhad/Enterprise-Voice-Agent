@@ -5,6 +5,7 @@ import { ChatPage } from './routes/chat'
 import { DashboardPage } from './routes/dashboard'
 import { KnowledgePage } from './routes/knowledge'
 import { AnalyticsPage } from './routes/analytics'
+import { VoicePage } from './routes/voice'
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -36,12 +37,19 @@ const analyticsRoute = createRoute({
   component: AnalyticsPage,
 })
 
+const voiceRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/voice',
+  component: VoicePage,
+})
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   chatRoute,
   dashboardRoute,
   knowledgeRoute,
   analyticsRoute,
+  voiceRoute,
 ])
 
 const router = createRouter({ routeTree })

@@ -14,6 +14,10 @@ class CustomerProfile(BaseModel):
     email: str
     phone: str | None = None
     is_active: bool
+    # Frontend display fields
+    created_at: datetime | None = None
+    tier: str | None = None
+    status: str | None = None
 
 
 class SubscriptionStatus(BaseModel):
@@ -24,3 +28,10 @@ class SubscriptionStatus(BaseModel):
     status: str
     current_period_start: datetime | None = None
     current_period_end: datetime | None = None
+    # Frontend display fields
+    customer_id: UUID | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    auto_renew: bool = True
+    amount: float | None = None
+    currency: str = "USD"

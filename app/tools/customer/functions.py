@@ -30,6 +30,9 @@ async def get_customer_profile(
         email=customer.email,
         phone=customer.phone,
         is_active=customer.is_active,
+        created_at=customer.created_at,
+        tier=customer.plan_tier,
+        status="active" if customer.is_active else "inactive",
     )
 
 
@@ -56,4 +59,10 @@ async def get_subscription_status(
         status=sub.status,
         current_period_start=sub.start_date,
         current_period_end=sub.end_date,
+        customer_id=sub.customer_id,
+        start_date=sub.start_date,
+        end_date=sub.end_date,
+        auto_renew=sub.status == "active",
+        amount=float(sub.monthly_amount) if sub.monthly_amount is not None else None,
+        currency="USD",
     )
