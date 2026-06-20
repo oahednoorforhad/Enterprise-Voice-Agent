@@ -78,6 +78,16 @@ def create_app() -> FastAPI:
     """Application factory used by `uvicorn app.main:app`."""
 
     settings = get_settings()
+
+    # Stdlib `logging.getLogger(__name__)` calls throughout the codebase
+    # (voice session, tool dispatch, etc.) are a separate system from the
+    # structlog setup in lifespan() above — without this, the root logger
+    # has no handler and INFO-level logs are silently dropped.
+    logging.basicConfig(
+        level=settings.log_level,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
+
     app = FastAPI(
         title=settings.app_name,
         version="0.1.0",

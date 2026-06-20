@@ -20,6 +20,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import logging
+import time
 import uuid
 from uuid import UUID
 
@@ -122,6 +123,17 @@ class GeminiLiveSession:
         self._session_id: str = str(uuid.uuid4())
         self._transcript: list[dict] = []   # {"role": "user"|"assistant", "text": "..."}
         self._tools_called: list[str] = []
+
+        # Diagnostic timing state — see _log_turn_diagnostics.
+        self._diag_session_started_at: float = time.monotonic()
+        self._diag_last_event_at: float | None = None
+        self._diag_turn_index: int = 0
+
+        # Playback gating: True while Gemini is generating/playing audio.
+        # Browser mic audio is NOT forwarded to Gemini during this window to
+        # prevent false VAD triggers. Cleared when the browser signals
+        # playback_complete (PLAYBACK_COMPLETE event).
+        self._gemini_speaking: bool = False
 
     # ── Public API ───────────────────────────────────────────────────────────
 
@@ -258,6 +270,10 @@ class GeminiLiveSession:
                 continue
 
             if event.type == VoiceEventType.AUDIO_CHUNK and event.data:
+                # Drop mic audio while Gemini is speaking to prevent false VAD
+                # triggers. Audio resumes automatically after playback_complete.
+                if self._gemini_speaking:
+                    continue
                 try:
                     pcm_bytes = base64.b64decode(event.data)
                     await live_session.send(
@@ -273,6 +289,19 @@ class GeminiLiveSession:
                 except Exception as exc:  # noqa: BLE001
                     logger.debug("browser_to_gemini: send error: %s", exc)
 
+            elif event.type == VoiceEventType.PLAYBACK_COMPLETE:
+                # Browser finished playing Gemini's audio. Unmute mic so the
+                # next user turn can flow through. No audio_stream_end needed —
+                # the log shows Gemini fires turn_complete on its own schedule
+                # (matching actual playback duration), always before this event
+                # arrives. Sending audio_stream_end after turn_complete lands it
+                # in the next turn's listening phase and can cut off responses.
+                self._gemini_speaking = False
+                logger.info(
+                    "browser_to_gemini: playback_complete — mic re-armed session=%s",
+                    self._session_id,
+                )
+
             elif event.type == VoiceEventType.END_OF_AUDIO:
                 # VAD handles end-of-turn detection automatically; no action needed.
                 pass
@@ -280,6 +309,7 @@ class GeminiLiveSession:
             elif event.type == VoiceEventType.INTERRUPT:
                 # Gemini Live detects user speech via VAD and interrupts itself.
                 # We must NOT return here — returning would end the whole session.
+                self._gemini_speaking = False
                 logger.debug("browser_to_gemini: interrupt received for %s (VAD handles it)", self._session_id)
 
     # ── Gemini → Browser ─────────────────────────────────────────────────────
@@ -319,6 +349,7 @@ class GeminiLiveSession:
 
         # ── Server content (audio + transcription) ───────────────────────
         sc = getattr(response, "server_content", None)
+        self._log_turn_diagnostics(response, sc)
         if sc is not None:
             # Audio output from the model
             model_turn = getattr(sc, "model_turn", None)
@@ -327,11 +358,22 @@ class GeminiLiveSession:
                 for part in parts:
                     inline = getattr(part, "inline_data", None)
                     if inline is not None and inline.data:
+                        # Mark Gemini as speaking on first audio chunk so
+                        # _browser_to_gemini stops forwarding mic audio.
+                        if not self._gemini_speaking:
+                            self._gemini_speaking = True
                         audio_b64 = base64.b64encode(inline.data).decode()
                         await _send_event(websocket, VoiceEvent(
                             type=VoiceEventType.AUDIO_CHUNK,
                             data=audio_b64,
                         ))
+
+            # Notify browser when Gemini finishes generating so it can start
+            # its playback-completion timer and send playback_complete back.
+            if getattr(sc, "generation_complete", None):
+                await _send_event(websocket, VoiceEvent(
+                    type=VoiceEventType.GENERATION_COMPLETE,
+                ))
 
             # User-speech transcription
             in_trans = getattr(sc, "input_transcription", None)
@@ -363,6 +405,77 @@ class GeminiLiveSession:
             function_calls = getattr(tool_call, "function_calls", None) or []
             for fc in function_calls:
                 await self._handle_function_call(websocket, live_session, fc)
+
+    def _log_turn_diagnostics(self, response: object, sc: object) -> None:
+        """Temporary diagnostic logging for per-turn latency investigation.
+
+        Logs the gap since the previous Gemini message and, when present,
+        ``usage_metadata`` token counts — so latency growth can be
+        correlated against prompt size growth across a long call. Only
+        emits a log line for "meaningful" events (transcription text,
+        turn/generation boundaries, usage metadata) to avoid flooding logs
+        with one line per audio chunk.
+        """
+        now = time.monotonic()
+        gap = now - self._diag_last_event_at if self._diag_last_event_at is not None else 0.0
+        self._diag_last_event_at = now
+
+        turn_complete = getattr(sc, "turn_complete", None) if sc is not None else None
+        generation_complete = getattr(sc, "generation_complete", None) if sc is not None else None
+        interrupted = getattr(sc, "interrupted", None) if sc is not None else None
+        waiting_for_input = getattr(sc, "waiting_for_input", None) if sc is not None else None
+
+        in_text = None
+        out_text = None
+        if sc is not None:
+            in_trans = getattr(sc, "input_transcription", None)
+            if in_trans is not None:
+                in_text = getattr(in_trans, "text", None)
+            out_trans = getattr(sc, "output_transcription", None)
+            if out_trans is not None:
+                out_text = getattr(out_trans, "text", None)
+
+        usage = getattr(response, "usage_metadata", None)
+
+        noteworthy = bool(
+            in_text or out_text or turn_complete or generation_complete
+            or interrupted or waiting_for_input or usage is not None
+        )
+        if noteworthy:
+            usage_str = "none"
+            if usage is not None:
+                details = getattr(usage, "prompt_tokens_details", None) or []
+                modality_str = ", ".join(
+                    f"{getattr(d, 'modality', '?')}={getattr(d, 'token_count', '?')}"
+                    for d in details
+                )
+                usage_str = (
+                    f"prompt={getattr(usage, 'prompt_token_count', None)} "
+                    f"response={getattr(usage, 'response_token_count', None)} "
+                    f"thoughts={getattr(usage, 'thoughts_token_count', None)} "
+                    f"total={getattr(usage, 'total_token_count', None)} "
+                    f"modalities=[{modality_str}]"
+                )
+
+            logger.info(
+                "voice_diag session=%s turn=%d t=%.2fs gap=%.2fs "
+                "turn_complete=%s generation_complete=%s interrupted=%s "
+                "waiting_for_input=%s in_trans_chars=%s out_trans_chars=%s usage(%s)",
+                self._session_id,
+                self._diag_turn_index,
+                now - self._diag_session_started_at,
+                gap,
+                turn_complete,
+                generation_complete,
+                interrupted,
+                waiting_for_input,
+                len(in_text) if in_text else 0,
+                len(out_text) if out_text else 0,
+                usage_str,
+            )
+
+        if turn_complete:
+            self._diag_turn_index += 1
 
     async def _handle_function_call(
         self,
@@ -446,7 +559,7 @@ def _build_live_config(system_prompt: str) -> types.LiveConnectConfig:
             )
         ),
         context_window_compression=types.ContextWindowCompressionConfig(
-            sliding_window=types.SlidingWindow(target_tokens=32000),
+            sliding_window=types.SlidingWindow(target_tokens=10000),
         ),
     )
 

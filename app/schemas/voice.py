@@ -29,6 +29,7 @@ class VoiceEventType(str, Enum):
     AUDIO_CHUNK = "audio_chunk"
     END_OF_AUDIO = "end_of_audio"
     INTERRUPT = "interrupt"
+    PLAYBACK_COMPLETE = "playback_complete"  # browser finished playing Gemini's audio
 
     # Sent by server
     SESSION_STARTED = "session_started"
@@ -36,6 +37,7 @@ class VoiceEventType(str, Enum):
     TRANSCRIPT = "transcript"
     TOOL_CALL = "tool_call"
     ERROR = "error"
+    GENERATION_COMPLETE = "generation_complete"  # Gemini finished generating audio
 
 
 class VoiceEvent(BaseModel):

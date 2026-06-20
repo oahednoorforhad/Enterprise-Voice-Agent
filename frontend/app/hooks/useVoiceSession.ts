@@ -133,6 +133,25 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         break
       }
 
+      case 'generation_complete': {
+        // Gemini finished generating. Compute exactly how much audio remains
+        // scheduled in the playback queue, then send playback_complete once
+        // it has drained. The server uses this to signal Gemini to re-arm
+        // VAD immediately rather than waiting on its own playback estimate.
+        const ctx = playbackCtxRef.current
+        if (ctx && wsRef.current) {
+          const ctxWithCursor = ctx as AudioContext & { _playAt?: number }
+          const remainingMs = Math.max(0, ((ctxWithCursor._playAt ?? 0) - ctx.currentTime) * 1000)
+          const ws = wsRef.current
+          setTimeout(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({ type: 'playback_complete' }))
+            }
+          }, remainingMs + 80)  // 80 ms buffer so audio fully drains
+        }
+        break
+      }
+
       case 'transcript': {
         const role = event.role as 'user' | 'assistant'
         const text = event.text as string
