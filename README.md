@@ -25,48 +25,60 @@ EVA is a production-grade, multi-source enterprise reasoning system with a real-
 
 EVA processes each turn through a five-stage pipeline. The LLM is invoked exactly **three times per turn**—for intent, reasoning, and call summary. Everything else is deterministic.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Client Layer                             │
-│   Browser WebSocket (audio)    ·    Browser HTTP (text chat)    │
-└────────────────────┬────────────────────────┬───────────────────┘
-                     │                        │
-          WS /voice/stream          POST /api/v1/chat
-                     │                        │
-┌────────────────────▼────────────────────────▼───────────────────┐
-│                     FastAPI Application                          │
-│   voice_router (Gemini Live bridge)  ·  chat_router             │
-└────────────────────────────────┬────────────────────────────────┘
-                                 │
-┌────────────────────────────────▼────────────────────────────────┐
-│                     OrchestratorService                          │
-│                                                                  │
-│  1. IntentAnalyzer          LLM → intent label + candidate tools │
-│  2. ToolSelector            deterministic policy → tool plan     │
-│  3. Tool Execution          asyncio.gather (parallel, 3s timeout)│
-│  4. EvidenceSufficiencyCheck deterministic → replan if needed    │
-│  5. EvidenceAggregator      normalise → EvidencePackage          │
-│  6. ReasoningPipeline       LLM → evidence-cited conclusion      │
-└─────────┬──────────┬──────────┬────────────┬────────────┬───────┘
-          │          │          │            │            │
-     Customer    Billing    Tickets     Knowledge    Analytics
-      (SQL)      (SQL)      (SQL)     (PGVector)     (SQL)
+```mermaid
+flowchart TD
+    WS["Browser WebSocket\naudio"]
+    HTTP["Browser HTTP\ntext chat"]
+    API["FastAPI\nvoice_router · chat_router"]
+    ORCH["OrchestratorService"]
+    IA["① IntentAnalyzer\nLLM → intent label + candidate tools"]
+    TS["② ToolSelector\ndeterministic policy → tool plan"]
+    TE["③ Tool Execution\nasyncio.gather · parallel · 3 s timeout"]
+    ESC["④ EvidenceSufficiencyCheck\ndeterministic → replan if needed"]
+    EA["⑤ EvidenceAggregator\nnormalise → EvidencePackage"]
+    RP["⑥ ReasoningPipeline\nLLM → evidence-cited conclusion"]
+    T1[("Customer\nSQL")]
+    T2[("Billing\nSQL")]
+    T3[("Tickets\nSQL")]
+    T4[("Knowledge\nPGVector")]
+    T5[("Analytics\nSQL")]
+
+    WS --> API
+    HTTP --> API
+    API --> ORCH
+    ORCH --> IA --> TS --> TE --> ESC --> EA --> RP
+    TE --> T1
+    TE --> T2
+    TE --> T3
+    TE --> T4
+    TE --> T5
 ```
 
 ### Voice pipeline (Gemini Native Audio)
 
-```
-Browser ──audio──► GeminiLiveSession ◄──► Gemini 2.5 Flash Native Audio
-                        │
-                   dispatch_tool()     ← tool calls from model
-                        │
-                   server-side DB      ← customer_id injected, never exposed
-                        │
-                 ──► transcript + tools collected on disconnect
-                        │
-                   generate_call_summary (LLM)
-                        │
-                   persist to conversation_sessions
+```mermaid
+sequenceDiagram
+    participant B as Browser
+    participant S as GeminiLiveSession
+    participant G as Gemini 2.5 Flash
+    participant DB as PostgreSQL
+
+    B->>S: WebSocket connect
+    S->>DB: load 3 prior sessions
+    S->>G: open connection + system prompt
+    loop Audio streaming
+        B->>S: audio frame
+        S->>G: relay audio
+        G->>S: audio response
+        S->>B: relay audio
+        G-->>S: tool_call
+        S->>DB: execute tool (customer_id injected)
+        DB-->>S: tool result
+        S->>G: function_response
+    end
+    B->>S: disconnect
+    S->>G: generate_call_summary
+    S->>DB: persist summary
 ```
 
 ### Key design decisions
