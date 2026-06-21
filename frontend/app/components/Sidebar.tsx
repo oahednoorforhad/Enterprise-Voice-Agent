@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from '@tanstack/react-router'
+import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import {
   LayoutDashboard,
   MessageSquare,
@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   Sparkles,
+  LogOut,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -32,8 +33,14 @@ const navItems = [
 
 export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
   const location = useLocation()
+  const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const handleLogout = () => {
+    localStorage.removeItem('jwt')
+    navigate({ to: '/login', replace: true })
+  }
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -90,6 +97,16 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
         >
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
           {!collapsed && <span>{isDark ? 'Light mode' : 'Dark mode'}</span>}
+        </button>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="sidebar-link w-full"
+          title={collapsed ? 'Logout' : undefined}
+        >
+          <LogOut size={20} />
+          {!collapsed && <span>Logout</span>}
         </button>
 
         {/* Collapse toggle (desktop only) */}

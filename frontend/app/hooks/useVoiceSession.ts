@@ -234,7 +234,8 @@ export function useVoiceSession(): UseVoiceSessionReturn {
     // Open a fresh playback context (cursor starts at 0 implicitly).
     playbackCtxRef.current = new AudioContext({ sampleRate: 24_000 })
 
-    const wsUrl = `${WS_BASE}/api/v1/voice/stream?customer_id=${encodeURIComponent(customerId)}&token=mock`
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('jwt') : null
+    const wsUrl = `${WS_BASE}/api/v1/voice/stream?customer_id=${encodeURIComponent(customerId)}&token=${encodeURIComponent(token ?? '')}`
     const ws = new WebSocket(wsUrl)
     wsRef.current = ws
 

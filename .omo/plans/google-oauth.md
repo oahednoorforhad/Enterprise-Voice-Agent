@@ -306,7 +306,7 @@ Wave FINAL (After ALL tasks):
     Evidence: .omo/evidence/task-5-unauthorized.txt
   ```
 
-- [ ] 6. Frontend Auth State & API Client Update
+- [x] 6. Frontend Auth State & API Client Update
 
   **What to do**:
   - Update `frontend/app/lib/api-client.ts`: Inject `Authorization: Bearer <jwt>` from `localStorage.getItem('jwt')`.
@@ -343,7 +343,7 @@ Wave FINAL (After ALL tasks):
     Evidence: .omo/evidence/task-6-header.png
   ```
 
-- [ ] 7. Login UI & TanStack Router Barrier
+- [x] 7. Login UI & TanStack Router Barrier
 
   **What to do**:
   - Create `frontend/app/routes/login.tsx`: Simple UI with "Sign in with Google" button pointing to `http://localhost:8000/api/v1/auth/login/google`.
@@ -380,7 +380,7 @@ Wave FINAL (After ALL tasks):
     Evidence: .omo/evidence/task-7-barrier.png
   ```
 
-- [ ] 8. Test Suite Updates
+- [x] 8. Test Suite Updates
 
   **What to do**:
   - Verify that existing backend tests continue to pass (they should, due to `MOCK_AUTH_ENABLED` logic or dependency overrides).

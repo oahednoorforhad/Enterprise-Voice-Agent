@@ -86,6 +86,8 @@ async def test_handle_response_audio_chunk_sent_to_browser():
     server_content.model_turn = model_turn
     server_content.input_transcription = None
     server_content.output_transcription = None
+    server_content.generation_complete = None
+    server_content.interrupted = None
 
     response = MagicMock()
     response.server_content = server_content

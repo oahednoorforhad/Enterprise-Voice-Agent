@@ -142,6 +142,10 @@ async function request<T>(
   }
 
   const headers: Record<string, string> = {}
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('jwt') : null
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
   }
