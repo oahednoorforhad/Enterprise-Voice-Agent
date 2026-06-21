@@ -1,0 +1,89 @@
+{
+  "schema_version": 2,
+  "active_work_id": "google-oauth-97bf8efe",
+  "works": {
+    "google-oauth-97bf8efe": {
+      "work_id": "google-oauth-97bf8efe",
+      "active_plan": "E:\\All About CSE\\Oahed.ai\\Enterprise Voice Agent\\.omo\\plans\\google-oauth.md",
+      "plan_name": "google-oauth",
+      "status": "active",
+      "started_at": "2026-06-21T22:49:44.433Z",
+      "updated_at": "2026-06-21T22:58:49.566Z",
+      "session_ids": [
+        "opencode:ses_1142011d3ffedLBi4rU2S8cr6f"
+      ],
+      "session_origins": {
+        "opencode:ses_1142011d3ffedLBi4rU2S8cr6f": "direct"
+      },
+      "agent": "atlas",
+      "task_sessions": {
+        "todo:1": {
+          "task_key": "todo:1",
+          "task_label": "1",
+          "task_title": "Add dependencies & config",
+          "session_id": "opencode:ses_1139ead41ffezEHxskHXGFCNY5",
+          "agent": "Sisyphus-Junior",
+          "category": "quick",
+          "updated_at": "2026-06-21T22:54:17.801Z",
+          "started_at": "2026-06-21T22:52:05.010Z",
+          "status": "completed",
+          "ended_at": "2026-06-21T22:54:17.801Z",
+          "elapsed_ms": 132791
+        },
+        "todo:4": {
+          "task_key": "todo:4",
+          "task_label": "4",
+          "task_title": "Google OAuth Router (`login` & `callback`)",
+          "session_id": "opencode:ses_1139b372dffeLuNQACCylf3yLq",
+          "agent": "Sisyphus-Junior",
+          "category": "unspecified-high",
+          "updated_at": "2026-06-21T22:58:49.566Z",
+          "started_at": "2026-06-21T22:56:25.354Z",
+          "status": "completed",
+          "ended_at": "2026-06-21T22:58:49.566Z",
+          "elapsed_ms": 144212
+        }
+      }
+    }
+  },
+  "active_plan": "E:\\All About CSE\\Oahed.ai\\Enterprise Voice Agent\\.omo\\plans\\google-oauth.md",
+  "started_at": "2026-06-21T22:49:44.433Z",
+  "status": "active",
+  "updated_at": "2026-06-21T22:58:49.566Z",
+  "session_ids": [
+    "opencode:ses_1142011d3ffedLBi4rU2S8cr6f"
+  ],
+  "session_origins": {
+    "opencode:ses_1142011d3ffedLBi4rU2S8cr6f": "direct"
+  },
+  "plan_name": "google-oauth",
+  "task_sessions": {
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "Add dependencies & config",
+      "session_id": "opencode:ses_1139ead41ffezEHxskHXGFCNY5",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-06-21T22:54:17.801Z",
+      "started_at": "2026-06-21T22:52:05.010Z",
+      "status": "completed",
+      "ended_at": "2026-06-21T22:54:17.801Z",
+      "elapsed_ms": 132791
+    },
+    "todo:4": {
+      "task_key": "todo:4",
+      "task_label": "4",
+      "task_title": "Google OAuth Router (`login` & `callback`)",
+      "session_id": "opencode:ses_1139b372dffeLuNQACCylf3yLq",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-06-21T22:58:49.566Z",
+      "started_at": "2026-06-21T22:56:25.354Z",
+      "status": "completed",
+      "ended_at": "2026-06-21T22:58:49.566Z",
+      "elapsed_ms": 144212
+    }
+  },
+  "agent": "atlas"
+}

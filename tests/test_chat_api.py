@@ -159,12 +159,12 @@ class TestChatEndpoint:
         assert body["evidence"] is None
 
     @patch("app.api.chat_router.OrchestratorService")
-    def test_customer_context_merging(
+    def test_customer_context_from_jwt(
         self,
         mock_orchestrator_cls: MagicMock,
         client: TestClient,
     ) -> None:
-        """The endpoint merges ``current_user`` with the request's ``customer_id``."""
+        """The endpoint uses ``current_user["customer_id"]`` (from JWT), ignoring the request body."""
         mock_instance = mock_orchestrator_cls.return_value
         mock_instance.process_turn = AsyncMock(
             return_value=_make_fake_chat_response()
@@ -172,17 +172,17 @@ class TestChatEndpoint:
 
         payload = {
             "message": "What is my balance?",
-            "customer_id": "req-specific-id",
+            "customer_id": "client-supplied-id",  # should be ignored
         }
         client.post("/api/v1/chat/", json=payload)
 
-        # Verify the orchestrator was constructed with the request's customer_id
-        # and that customer_context includes both the mock user and the caller id.
+        # Verify the orchestrator was constructed with the JWT customer_id,
+        # NOT the one from the request body.
         call_kwargs = mock_orchestrator_cls.call_args.kwargs
-        assert call_kwargs["customer_id"] == "req-specific-id"
+        assert call_kwargs["customer_id"] == "mock_001"
         assert "customer_context" in call_kwargs
         ctx = call_kwargs["customer_context"]
-        assert ctx["customer_id"] == "req-specific-id"
+        assert ctx["customer_id"] == "mock_001"
         assert ctx["name"] == "Mock User"
         assert ctx["email"] == "mock@clouddesk.com"
 
@@ -224,7 +224,7 @@ class TestChatEndpoint:
         mock_orchestrator_cls: MagicMock,
         client: TestClient,
     ) -> None:
-        """Verify the endpoint constructs ``OrchestratorService`` with expected args."""
+        """Verify the endpoint constructs ``OrchestratorService`` with JWT customer_id."""
         mock_instance = mock_orchestrator_cls.return_value
         mock_instance.process_turn = AsyncMock(
             return_value=_make_fake_chat_response()
@@ -237,11 +237,12 @@ class TestChatEndpoint:
         response = client.post("/api/v1/chat/", json=payload)
         assert response.status_code == 200
 
-        # OrchestratorService was constructed once
+        # OrchestratorService was constructed with the JWT user's customer_id
+        # (mock_001) rather than the one from the request body.
         mock_orchestrator_cls.assert_called_once()
         call_args = mock_orchestrator_cls.call_args
         assert "customer_id" in call_args.kwargs
-        assert call_args.kwargs["customer_id"] == payload["customer_id"]
+        assert call_args.kwargs["customer_id"] == "mock_001"
 
         mock_instance.process_turn.assert_awaited_once_with(
             payload["message"], conversation_history=""

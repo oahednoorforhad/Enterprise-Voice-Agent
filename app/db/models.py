@@ -50,6 +50,7 @@ class Customer(TimestampMixin, Base):
     )
     name: Mapped[str] = mapped_column(String(255))
     email: Mapped[str] = mapped_column(String(255), unique=True)
+    google_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     phone: Mapped[str | None] = mapped_column(String(50))
     company: Mapped[str | None] = mapped_column(String(255))
     plan_tier: Mapped[str] = mapped_column(String(50), default="free")

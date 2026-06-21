@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.auth_router import auth_router
 from app.api.chat_router import chat_router
 from app.api.tools_router import tools_router
 from app.api.voice_router import voice_router
@@ -161,6 +162,7 @@ def create_app() -> FastAPI:
         )
 
     # ── Routers ────────────────────────────────────────────────────────
+    app.include_router(auth_router)
     app.include_router(tools_router)
     app.include_router(chat_router)
     app.include_router(voice_router)

@@ -64,9 +64,39 @@ async def voice_stream(
     settings = get_settings()
 
     # ── Auth ──────────────────────────────────────────────────────────────
-    if not settings.mock_auth_enabled and not token:
-        await websocket.close(code=4001, reason="Authentication required")
-        return
+    real_token_provided = bool(token and token != "mock")
+
+    if not settings.mock_auth_enabled:
+        if not real_token_provided:
+            await websocket.close(code=4001, reason="Authentication required")
+            return
+        # Verify the JWT and extract customer_id from the ``sub`` claim
+        try:
+            from app.core.security import verify_token as _verify_token
+
+            payload = _verify_token(token)
+            token_sub = payload.get("sub")
+            if token_sub:
+                customer_id = token_sub
+            else:
+                await websocket.close(code=4001, reason="Invalid token: missing sub")
+                return
+        except Exception:
+            await websocket.close(code=4001, reason="Invalid token")
+            return
+    elif real_token_provided:
+        # Even in mock mode, if a real token is given, attempt to verify and
+        # extract customer_id — silently fall through to query-param/default
+        # behaviour if verification fails.
+        try:
+            from app.core.security import verify_token as _verify_token
+
+            payload = _verify_token(token)
+            token_sub = payload.get("sub")
+            if token_sub:
+                customer_id = token_sub
+        except Exception:
+            pass
 
     if not customer_id:
         # Fallback to the mock test customer so the UI works out of the box

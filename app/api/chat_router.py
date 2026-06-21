@@ -37,19 +37,21 @@ async def chat(
     Conversation history is loaded from PostgreSQL before the turn and
     saved after the turn so the LLM is aware of prior discussion.
     """
-    # Merge mock user context with the request's customer_id so the
-    # orchestrator and downstream tools use the caller-supplied id.
-    customer_context = {**current_user, "customer_id": request.customer_id}
+    # The ``customer_id`` is taken from the JWT (via ``get_current_user``)
+    # rather than from the request body — the server is the authority for
+    # which customer is making the call, not the client.
+    customer_id = current_user["customer_id"]
+    customer_context = {**current_user, "customer_id": customer_id}
 
     history_context = await _memory.format_prompt_context(
-        session, request.customer_id
+        session, customer_id
     )
 
     factory = get_session_factory()
     orchestrator = OrchestratorService(
         llm_client=llm,
         session_factory=factory,
-        customer_id=request.customer_id,
+        customer_id=customer_id,
         customer_context=customer_context,
     )
     result = await orchestrator.process_turn(
@@ -59,7 +61,7 @@ async def chat(
 
     await _memory.add_turn(
         session=session,
-        customer_id=request.customer_id,
+        customer_id=customer_id,
         user_message=request.message,
         assistant_response=result.response,
     )

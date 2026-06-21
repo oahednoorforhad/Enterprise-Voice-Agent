@@ -66,6 +66,19 @@ class Settings(BaseSettings):
     langfuse_host: str = "https://cloud.langfuse.com"
     langfuse_base_url: str = ""  # takes precedence over langfuse_host when set
 
+    # OAuth & JWT
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:8000/api/v1/auth/callback/google"
+    jwt_secret: str = Field(
+        default="change_me_in_production",
+        description="Secret key used to sign JWT tokens.",
+    )
+    jwt_algorithm: str = Field(
+        default="HS256",
+        description="Signing algorithm for JWT tokens (e.g. HS256, RS256).",
+    )
+
     # Reasoning
     max_tool_calls_per_turn: int = 6
     retrieval_top_k: int = 5
