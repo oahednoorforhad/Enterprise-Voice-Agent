@@ -116,13 +116,18 @@ export function decodePCMFromBase64(b64: string): Float32Array {
   return float32
 }
 
+type ExtendedAudioContext = AudioContext & {
+  _playAt?: number
+  _pending?: AudioBufferSourceNode[]
+}
+
 /**
  * Schedule playback of a Float32Array PCM chunk via the given AudioContext.
  *
  * Chunks are queued end-to-end using a rolling cursor so back-to-back calls
- * produce seamless audio without gaps or overlaps.  The cursor is stored on
- * the AudioContext instance itself so the same context can be passed on every
- * call without needing external state.
+ * produce seamless audio without gaps or overlaps.  The cursor and the list of
+ * pending source nodes are stored on the AudioContext instance so the same
+ * context can be passed on every call without needing external state.
  */
 export function schedulePlayback(ctx: AudioContext, pcm: Float32Array): void {
   const buffer = ctx.createBuffer(1, pcm.length, TARGET_SAMPLE_RATE)
@@ -131,11 +136,29 @@ export function schedulePlayback(ctx: AudioContext, pcm: Float32Array): void {
   source.buffer = buffer
   source.connect(ctx.destination)
 
-  // Roll the cursor forward: start right after the previous chunk ends,
-  // or immediately if we're behind the playhead (first chunk / after a gap).
-  const ctxWithCursor = ctx as AudioContext & { _playAt?: number }
-  const startAt = Math.max(ctx.currentTime, ctxWithCursor._playAt ?? 0)
-  ctxWithCursor._playAt = startAt + buffer.duration
+  const ext = ctx as ExtendedAudioContext
+  const startAt = Math.max(ctx.currentTime, ext._playAt ?? 0)
+  ext._playAt = startAt + buffer.duration
+
+  if (!ext._pending) ext._pending = []
+  ext._pending.push(source)
+  source.addEventListener('ended', () => {
+    ext._pending = ext._pending?.filter((s) => s !== source)
+  })
 
   source.start(startAt)
+}
+
+/**
+ * Immediately stop all scheduled audio and reset the playback cursor.
+ * Called when Gemini interrupts itself mid-speech.
+ */
+export function cancelScheduledAudio(ctx: AudioContext): void {
+  const ext = ctx as ExtendedAudioContext
+  const now = ctx.currentTime
+  for (const source of ext._pending ?? []) {
+    try { source.stop(now) } catch { /* already ended — ignore */ }
+  }
+  ext._pending = []
+  ext._playAt = now
 }

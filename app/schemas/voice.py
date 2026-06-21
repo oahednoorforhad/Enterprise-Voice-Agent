@@ -38,6 +38,7 @@ class VoiceEventType(str, Enum):
     TOOL_CALL = "tool_call"
     ERROR = "error"
     GENERATION_COMPLETE = "generation_complete"  # Gemini finished generating audio
+    INTERRUPTED = "interrupted"                  # Gemini interrupted mid-speech; browser must cancel queued audio
 
 
 class VoiceEvent(BaseModel):

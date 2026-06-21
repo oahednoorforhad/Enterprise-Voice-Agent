@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  cancelScheduledAudio,
   createResampler,
   decodePCMFromBase64,
   encodePCMToBase64,
@@ -75,6 +76,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   const wsRef = useRef<WebSocket | null>(null)
   const resamplerRef = useRef<ResamplerHandle | null>(null)
   const playbackCtxRef = useRef<AudioContext | null>(null)
+  const playbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Track state in a ref so event handlers always see the latest value
   const stateRef = useRef<VoiceState>('idle')
 
@@ -134,20 +136,31 @@ export function useVoiceSession(): UseVoiceSessionReturn {
       }
 
       case 'generation_complete': {
-        // Gemini finished generating. Compute exactly how much audio remains
-        // scheduled in the playback queue, then send playback_complete once
-        // it has drained. The server uses this to signal Gemini to re-arm
-        // VAD immediately rather than waiting on its own playback estimate.
         const ctx = playbackCtxRef.current
         if (ctx && wsRef.current) {
           const ctxWithCursor = ctx as AudioContext & { _playAt?: number }
           const remainingMs = Math.max(0, ((ctxWithCursor._playAt ?? 0) - ctx.currentTime) * 1000)
           const ws = wsRef.current
-          setTimeout(() => {
+          playbackTimerRef.current = setTimeout(() => {
+            playbackTimerRef.current = null
             if (ws.readyState === WebSocket.OPEN) {
               ws.send(JSON.stringify({ type: 'playback_complete' }))
             }
-          }, remainingMs + 80)  // 80 ms buffer so audio fully drains
+          }, remainingMs + 80)
+        }
+        break
+      }
+
+      case 'interrupted': {
+        // Gemini cut itself off because user started speaking.
+        // Cancel the playback_complete timer (no longer relevant) and
+        // stop any audio still queued in the Web Audio scheduler.
+        if (playbackTimerRef.current !== null) {
+          clearTimeout(playbackTimerRef.current)
+          playbackTimerRef.current = null
+        }
+        if (playbackCtxRef.current) {
+          cancelScheduledAudio(playbackCtxRef.current)
         }
         break
       }
@@ -272,6 +285,13 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   }, [updateState])
 
   const interrupt = useCallback((): void => {
+    if (playbackTimerRef.current !== null) {
+      clearTimeout(playbackTimerRef.current)
+      playbackTimerRef.current = null
+    }
+    if (playbackCtxRef.current) {
+      cancelScheduledAudio(playbackCtxRef.current)
+    }
     const ws = wsRef.current
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'interrupt' }))

@@ -270,8 +270,6 @@ class GeminiLiveSession:
                 continue
 
             if event.type == VoiceEventType.AUDIO_CHUNK and event.data:
-                # Drop mic audio while Gemini is speaking to prevent false VAD
-                # triggers. Audio resumes automatically after playback_complete.
                 if self._gemini_speaking:
                     continue
                 try:
@@ -373,6 +371,26 @@ class GeminiLiveSession:
             if getattr(sc, "generation_complete", None):
                 await _send_event(websocket, VoiceEvent(
                     type=VoiceEventType.GENERATION_COMPLETE,
+                ))
+                # Unmute mic after a short grace period. Immediate unmute can
+                # send a transient noise burst to Gemini's VAD right as its
+                # playback timer starts, causing a false speech-onset detection
+                # that leaves the session stuck collecting input. 250 ms is
+                # enough for the hardware to settle; the drain window is still
+                # 3-14 s so there is plenty of time to interrupt.
+                session_ref = self
+                async def _delayed_unmute() -> None:
+                    await asyncio.sleep(0.25)
+                    session_ref._gemini_speaking = False
+                asyncio.create_task(_delayed_unmute())
+
+            # Gemini's VAD detected user speech mid-response and cut itself off.
+            # Tell the browser to cancel any queued audio immediately.
+            if getattr(sc, "interrupted", None):
+                self._gemini_speaking = False
+                logger.info("gemini interrupted mid-turn session=%s", self._session_id)
+                await _send_event(websocket, VoiceEvent(
+                    type=VoiceEventType.INTERRUPTED,
                 ))
 
             # User-speech transcription
