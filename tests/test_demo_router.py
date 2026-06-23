@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
-
 import pytest
-from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select
 
 from app.db.models import (
@@ -37,8 +35,9 @@ def _make_customer(**kwargs) -> Customer:
 class TestApplyScenario:
     """POST /api/v1/demo/apply-scenario"""
 
-    def _override_deps(self, app, async_session, customer_id: str, email: str):
-        """Install dependency overrides pointing at the real async_session."""
+    async def _setup(self, async_session, customer_id: str, email: str):
+        """Install dependency overrides on the app."""
+        from app.main import app
         from app.api.deps import get_current_user
         from app.db import get_db_session
 
@@ -51,8 +50,10 @@ class TestApplyScenario:
         app.dependency_overrides[get_db_session] = _override_db
         app.dependency_overrides[get_current_user] = _override_user
 
-    def _clear_overrides(self, app):
-        """Remove dependency overrides installed by this test."""
+        return app
+
+    async def _teardown(self):
+        from app.main import app
         from app.api.deps import get_current_user
         from app.db import get_db_session
 
@@ -61,8 +62,6 @@ class TestApplyScenario:
 
     async def test_apply_scenario_demo_user(self, async_session) -> None:
         """A demo user can apply a scenario — data is inserted with correct FK wiring."""
-        from app.main import app
-
         # Arrange
         customer = _make_customer()
         async_session.add(customer)
@@ -70,15 +69,15 @@ class TestApplyScenario:
         await async_session.refresh(customer)
 
         customer_id = str(customer.id)
-        self._override_deps(app, async_session, customer_id, customer.email)
+        app = await self._setup(async_session, customer_id, customer.email)
 
-        client = TestClient(app, raise_server_exceptions=False)
-
-        # Act
-        response = client.post(
-            "/api/v1/demo/apply-scenario",
-            json={"scenario_id": "billing_dispute"},
-        )
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            # Act
+            response = await client.post(
+                "/api/v1/demo/apply-scenario",
+                json={"scenario_id": "billing_dispute"},
+            )
 
         # Assert
         assert response.status_code == 200, response.text
@@ -125,12 +124,10 @@ class TestApplyScenario:
         assert len(notes) > 0
 
         # Clean up
-        self._clear_overrides(app)
+        await self._teardown()
 
     async def test_apply_scenario_non_demo_user_403(self, async_session) -> None:
         """A non-demo user gets 403."""
-        from app.main import app
-
         # Arrange
         customer = _make_customer(name="Real User", email="real@test.com", is_demo=False)
         async_session.add(customer)
@@ -138,27 +135,25 @@ class TestApplyScenario:
         await async_session.refresh(customer)
 
         customer_id = str(customer.id)
-        self._override_deps(app, async_session, customer_id, customer.email)
+        app = await self._setup(async_session, customer_id, customer.email)
 
-        client = TestClient(app, raise_server_exceptions=False)
-
-        # Act
-        response = client.post(
-            "/api/v1/demo/apply-scenario",
-            json={"scenario_id": "billing_dispute"},
-        )
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            # Act
+            response = await client.post(
+                "/api/v1/demo/apply-scenario",
+                json={"scenario_id": "billing_dispute"},
+            )
 
         # Assert
         assert response.status_code == 403, response.text
         assert "Only demo accounts" in response.text
 
         # Clean up
-        self._clear_overrides(app)
+        await self._teardown()
 
     async def test_apply_scenario_invalid_id_400(self, async_session) -> None:
         """An unknown scenario_id returns 400."""
-        from app.main import app
-
         # Arrange
         customer = _make_customer(name="Demo User 2", email="demo2@test.com")
         async_session.add(customer)
@@ -166,47 +161,44 @@ class TestApplyScenario:
         await async_session.refresh(customer)
 
         customer_id = str(customer.id)
-        self._override_deps(app, async_session, customer_id, customer.email)
+        app = await self._setup(async_session, customer_id, customer.email)
 
-        client = TestClient(app, raise_server_exceptions=False)
-
-        # Act
-        response = client.post(
-            "/api/v1/demo/apply-scenario",
-            json={"scenario_id": "nonexistent_scenario"},
-        )
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            # Act
+            response = await client.post(
+                "/api/v1/demo/apply-scenario",
+                json={"scenario_id": "nonexistent_scenario"},
+            )
 
         # Assert
         assert response.status_code == 400, response.text
         assert "Unknown scenario_id" in response.text
 
         # Clean up
-        self._clear_overrides(app)
+        await self._teardown()
 
     async def test_apply_scenario_customer_not_found_404(self, async_session) -> None:
         """When the customer_id from auth doesn't exist in DB, return 404."""
-        from app.main import app
-
-        # Use a UUID that does not correspond to any customer
         from uuid import uuid4
 
         fake_id = str(uuid4())
-        self._override_deps(app, async_session, fake_id, "ghost@test.com")
+        app = await self._setup(async_session, fake_id, "ghost@test.com")
 
-        client = TestClient(app, raise_server_exceptions=False)
-
-        # Act
-        response = client.post(
-            "/api/v1/demo/apply-scenario",
-            json={"scenario_id": "billing_dispute"},
-        )
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            # Act
+            response = await client.post(
+                "/api/v1/demo/apply-scenario",
+                json={"scenario_id": "billing_dispute"},
+            )
 
         # Assert
         assert response.status_code == 404, response.text
         assert "Customer not found" in response.text
 
         # Clean up
-        self._clear_overrides(app)
+        await self._teardown()
 
 
 # ── Route registration (no DB, dependency-free smoke tests) ─────────────────
