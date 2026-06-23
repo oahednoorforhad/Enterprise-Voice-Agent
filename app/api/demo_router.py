@@ -158,7 +158,9 @@ async def apply_scenario(
             author=note.get("author"),
         ))
 
-    # --- Update Customer.active_scenario ---
+    # --- Update Customer fields ---
+    if "plan_tier" in scenario:
+        customer.plan_tier = scenario["plan_tier"]
     customer.active_scenario = body.scenario_id
     session.add(customer)
 

@@ -36,6 +36,7 @@ dependencies = [
     # Data generation
     "faker>=25",
     "pytest>=9.0.3",
+    "itsdangerous>=2.2.0",
 ]
 
 [project.optional-dependencies]

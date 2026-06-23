@@ -6,9 +6,9 @@
       "work_id": "google-oauth-97bf8efe",
       "active_plan": "E:\\All About CSE\\Oahed.ai\\Enterprise Voice Agent\\.omo\\plans\\google-oauth.md",
       "plan_name": "google-oauth",
-      "status": "active",
+      "status": "completed",
       "started_at": "2026-06-21T22:49:44.433Z",
-      "updated_at": "2026-06-21T23:05:35.423Z",
+      "updated_at": "2026-06-22T12:13:16.634Z",
       "session_ids": [
         "opencode:ses_1142011d3ffedLBi4rU2S8cr6f"
       ],
@@ -55,14 +55,42 @@
           "updated_at": "2026-06-21T23:05:35.423Z",
           "ended_at": "2026-06-21T23:05:35.423Z",
           "elapsed_ms": 363189
+        },
+        "final-wave:f1": {
+          "task_key": "final-wave:f1",
+          "task_label": "F1",
+          "task_title": "**Plan Compliance Audit** — `oracle`",
+          "session_id": "opencode:ses_11390dbb8ffeM8N5jyn6M3gLMC",
+          "agent": "Sisyphus-Junior",
+          "category": "unspecified-high",
+          "updated_at": "2026-06-22T00:06:04.700Z",
+          "started_at": "2026-06-21T23:08:57.034Z",
+          "status": "completed",
+          "ended_at": "2026-06-22T00:06:04.700Z",
+          "elapsed_ms": 3427666
+        },
+        "final-wave:f3": {
+          "task_key": "final-wave:f3",
+          "task_label": "F3",
+          "task_title": "**Real Manual QA** — `unspecified-high`",
+          "session_id": "opencode:ses_11359ecf2ffeVy2AP6o8eTjQU0",
+          "agent": "Sisyphus-Junior",
+          "category": "unspecified-high",
+          "updated_at": "2026-06-22T12:12:48.207Z",
+          "started_at": "2026-06-22T00:15:26.086Z",
+          "status": "completed",
+          "ended_at": "2026-06-22T12:12:48.207Z",
+          "elapsed_ms": 43042121
         }
-      }
+      },
+      "ended_at": "2026-06-22T12:13:16.634Z",
+      "elapsed_ms": 48212201
     }
   },
   "active_plan": "E:\\All About CSE\\Oahed.ai\\Enterprise Voice Agent\\.omo\\plans\\google-oauth.md",
   "started_at": "2026-06-21T22:49:44.433Z",
-  "status": "active",
-  "updated_at": "2026-06-21T23:05:35.423Z",
+  "status": "completed",
+  "updated_at": "2026-06-22T12:13:16.634Z",
   "session_ids": [
     "opencode:ses_1142011d3ffedLBi4rU2S8cr6f"
   ],
@@ -109,7 +137,35 @@
       "updated_at": "2026-06-21T23:05:35.423Z",
       "ended_at": "2026-06-21T23:05:35.423Z",
       "elapsed_ms": 363189
+    },
+    "final-wave:f1": {
+      "task_key": "final-wave:f1",
+      "task_label": "F1",
+      "task_title": "**Plan Compliance Audit** — `oracle`",
+      "session_id": "opencode:ses_11390dbb8ffeM8N5jyn6M3gLMC",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-06-22T00:06:04.700Z",
+      "started_at": "2026-06-21T23:08:57.034Z",
+      "status": "completed",
+      "ended_at": "2026-06-22T00:06:04.700Z",
+      "elapsed_ms": 3427666
+    },
+    "final-wave:f3": {
+      "task_key": "final-wave:f3",
+      "task_label": "F3",
+      "task_title": "**Real Manual QA** — `unspecified-high`",
+      "session_id": "opencode:ses_11359ecf2ffeVy2AP6o8eTjQU0",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-06-22T12:12:48.207Z",
+      "started_at": "2026-06-22T00:15:26.086Z",
+      "status": "completed",
+      "ended_at": "2026-06-22T12:12:48.207Z",
+      "elapsed_ms": 43042121
     }
   },
-  "agent": "atlas"
+  "agent": "atlas",
+  "ended_at": "2026-06-22T12:13:16.634Z",
+  "elapsed_ms": 48212201
 }

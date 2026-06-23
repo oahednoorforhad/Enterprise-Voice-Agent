@@ -1,4 +1,5 @@
 {
+  "plan_tier": "starter",
   "subscription": {
     "plan_name": "Starter",
     "status": "active",

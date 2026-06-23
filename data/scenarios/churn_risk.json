@@ -1,4 +1,5 @@
 {
+  "plan_tier": "professional",
   "subscription": {
     "plan_name": "Professional",
     "status": "active",

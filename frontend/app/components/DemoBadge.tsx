@@ -7,15 +7,15 @@ export default function DemoBadge() {
     : 'Demo'
 
   return (
-    <div className="rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3">
-      <div className="flex items-center gap-2 mb-2">
-        <FlaskConical size={14} className="text-amber-600 dark:text-amber-400" />
-        <span className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Demo Mode</span>
+    <div className="demo-badge">
+      <div className="flex items-center gap-2 mb-1.5">
+        <FlaskConical size={14} className="text-coral-500" />
+        <span className="label">Demo Mode</span>
       </div>
-      <p className="text-xs text-amber-600 dark:text-amber-500 mb-2 truncate">{scenarioName}</p>
+      <p className="text-caption text-coral-600 dark:text-coral-500 mb-1.5 truncate">{scenarioName}</p>
       <Link
         to="/scenarios"
-        className="text-xs text-amber-700 dark:text-amber-400 hover:underline font-medium"
+        className="text-caption font-medium text-coral-700 dark:text-coral-400 hover:underline"
       >
         Switch Persona →
       </Link>

@@ -1,4 +1,4 @@
-import { createRootRoute, Outlet } from '@tanstack/react-router'
+import { createRootRoute, Outlet, useLocation } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState, useEffect, createContext, useContext, useCallback } from 'react'
 import Sidebar from '../components/Sidebar'
@@ -50,6 +50,8 @@ function RootLayout() {
   const [backendOffline, setBackendOffline] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const isLoggedIn = typeof localStorage !== 'undefined' && !!localStorage.getItem('jwt')
+  const location = useLocation()
+  const hideSidebar = location.pathname === '/' || location.pathname === '/scenarios'
 
   // Persist dark mode
   useEffect(() => {
@@ -75,17 +77,17 @@ function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppCtx.Provider value={{ backendOffline, setBackendOffline }}>
-        <div className="flex min-h-screen">
-          {isLoggedIn && <Sidebar isDark={isDark} onToggleDark={handleToggleDark} />}
+        <div className="flex min-h-screen bg-surface-white dark:bg-surface-dark">
+          {isLoggedIn && !hideSidebar && <Sidebar isDark={isDark} onToggleDark={handleToggleDark} />}
           <main
             className={`flex-1 transition-all duration-300 ${
-              isLoggedIn
+              isLoggedIn && !hideSidebar
                 ? (sidebarCollapsed ? 'md:ml-[68px]' : 'md:ml-[var(--sidebar-width)]')
                 : ''
             }`}
           >
             {isLoggedIn && backendOffline && (
-              <div className="offline-banner mx-4 mt-4 mb-2 px-4 py-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+              <div className="mx-4 mt-4 mb-2 px-4 py-3 rounded-lg chip-amber flex items-center gap-2 text-body-small">
                 <svg
                   width="16"
                   height="16"
@@ -95,6 +97,7 @@ function RootLayout() {
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  className="flex-shrink-0"
                 >
                   <line x1="1" y1="1" x2="23" y2="23" />
                   <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />

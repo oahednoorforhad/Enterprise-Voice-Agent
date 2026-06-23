@@ -126,10 +126,12 @@ class TestChatEndpoint:
 
         assert response.status_code == 200
         body = response.json()
-        assert body["response"] == "You were charged twice because..."
-        assert body["tool_calls_made"] == ["get_billing_history"]
-        assert body["evidence"] is not None
-        assert body["reasoning_trace"] is not None
+        assert body["success"] is True
+        assert body["data"]["response"] == "You were charged twice because..."
+        assert body["data"]["tool_calls_made"] == ["get_billing_history"]
+        assert body["data"]["evidence"] is not None
+        assert body["data"]["reasoning_trace"] is not None
+        assert body["error"] is None
 
     @patch("app.api.chat_router.OrchestratorService")
     def test_greeting_no_tools(
@@ -154,9 +156,11 @@ class TestChatEndpoint:
 
         assert response.status_code == 200
         body = response.json()
-        assert body["response"] == "Hello! How can I help you today?"
-        assert body["tool_calls_made"] == []
-        assert body["evidence"] is None
+        assert body["success"] is True
+        assert body["data"]["response"] == "Hello! How can I help you today?"
+        assert body["data"]["tool_calls_made"] == []
+        assert body["data"]["evidence"] is None
+        assert body["error"] is None
 
     @patch("app.api.chat_router.OrchestratorService")
     def test_customer_context_from_jwt(

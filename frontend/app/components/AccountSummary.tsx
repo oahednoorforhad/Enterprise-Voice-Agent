@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { CustomerProfile, Subscription, Ticket, BillingRecord, UsageAnalytics } from '../lib/api-client'
-import { CreditCard, Ticket as TicketIcon, TrendingUp, User, RefreshCw } from 'lucide-react'
+import { CreditCard, Ticket as TicketIcon, TrendingUp, User, RefreshCw, ChevronDown, ChevronRight } from 'lucide-react'
 import DemoBadge from './DemoBadge'
 
 interface AccountSummaryProps {
@@ -12,11 +13,21 @@ interface AccountSummaryProps {
 }
 
 export default function AccountSummary({ profile, subscription, tickets, billing, analytics, isLoading }: AccountSummaryProps) {
+  const [expandedTickets, setExpandedTickets] = useState(new Set<string>())
+
+  const toggleTicket = (id: string) => {
+    setExpandedTickets(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
   if (isLoading) {
     return (
-      <div className="p-6 space-y-4 animate-pulse">
+      <div className="p-5 space-y-4 animate-pulse">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-24 bg-gray-100 dark:bg-gray-800 rounded-xl" />
+          <div key={i} className="h-24 bg-surface-stone dark:bg-surface-dark-elevated rounded-lg" />
         ))}
       </div>
     )
@@ -26,31 +37,31 @@ export default function AccountSummary({ profile, subscription, tickets, billing
   const latestBilling = billing?.slice(0, 3) ?? []
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-5 space-y-4">
       {/* Demo badge */}
       <DemoBadge />
 
       {/* Customer info */}
       {profile && (
-        <div className="card">
-          <div className="card-header flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
-              <User size={16} className="text-brand-600 dark:text-brand-400" />
+        <div className="card-flat">
+          <div className="flex items-center gap-3 px-5 py-3.5 border-b border-hairline dark:border-white/5">
+            <div className="w-9 h-9 rounded-full bg-surface-stone dark:bg-surface-dark-elevated flex items-center justify-center">
+              <User size={16} className="text-muted-slate dark:text-gray-400" />
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">{profile.name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{profile.email}</p>
+              <p className="font-display text-heading-feature text-ink dark:text-white truncate leading-tight">{profile.name}</p>
+              <p className="text-caption text-muted-slate truncate">{profile.email}</p>
             </div>
           </div>
-          <div className="card-body">
-            <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="px-5 py-3.5">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="metric-label">Tier</p>
-                <p className="font-medium text-gray-800 dark:text-gray-200 capitalize">{profile.tier ?? '—'}</p>
+                <p className="label-mono text-[11px] mb-0.5">Tier</p>
+                <p className="text-body-small font-medium text-ink dark:text-gray-100 capitalize">{profile.tier ?? '—'}</p>
               </div>
               <div>
-                <p className="metric-label">Status</p>
-                <span className={`badge ${profile.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
+                <p className="label-mono text-[11px] mb-0.5">Status</p>
+                <span className={`chip text-[11px] py-0.5 ${profile.status === 'active' ? 'chip-green' : 'chip-amber'}`}>
                   {profile.status ?? '—'}
                 </span>
               </div>
@@ -61,77 +72,96 @@ export default function AccountSummary({ profile, subscription, tickets, billing
 
       {/* Subscription */}
       {subscription && (
-        <div className="card">
-          <div className="card-header flex items-center gap-2">
-            <RefreshCw size={14} className="text-brand-500" />
-            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Subscription</span>
+        <div className="card-flat">
+          <div className="flex items-center gap-2 px-5 py-3.5 border-b border-hairline dark:border-white/5">
+            <RefreshCw size={14} className="text-brand-coral" />
+            <span className="font-display text-heading-feature text-ink dark:text-white text-sm">Subscription</span>
           </div>
-          <div className="card-body grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <p className="metric-label">Plan</p>
-              <p className="font-medium text-gray-800 dark:text-gray-200 truncate">{subscription.plan}</p>
-            </div>
-            <div>
-              <p className="metric-label">Status</p>
-              <span className={`badge ${subscription.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
-                {subscription.status}
-              </span>
-            </div>
-            <div>
-              <p className="metric-label">Amount</p>
-              <p className="font-medium text-gray-800 dark:text-gray-200">${subscription.amount?.toFixed(2)}/mo</p>
-            </div>
-            <div>
-              <p className="metric-label">Renews</p>
-              <p className="font-medium text-gray-800 dark:text-gray-200">
-                {subscription.end_date ? new Date(subscription.end_date).toLocaleDateString() : '—'}
-              </p>
+          <div className="px-5 py-3.5">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="label-mono text-[11px] mb-0.5">Plan</p>
+                <p className="text-body-small font-medium text-ink dark:text-gray-100 truncate">{subscription.plan}</p>
+              </div>
+              <div>
+                <p className="label-mono text-[11px] mb-0.5">Status</p>
+                <span className={`chip text-[11px] py-0.5 ${subscription.status === 'active' ? 'chip-green' : 'chip-amber'}`}>
+                  {subscription.status}
+                </span>
+              </div>
+              <div>
+                <p className="label-mono text-[11px] mb-0.5">Amount</p>
+                <p className="text-body-small font-medium text-ink dark:text-gray-100">${subscription.amount?.toFixed(2)}/mo</p>
+              </div>
+              <div>
+                <p className="label-mono text-[11px] mb-0.5">Renews</p>
+                <p className="text-body-small font-medium text-ink dark:text-gray-100">
+                  {subscription.end_date ? new Date(subscription.end_date).toLocaleDateString() : '—'}
+                </p>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Open tickets */}
-      <div className="card">
-        <div className="card-header flex items-center gap-2">
-          <TicketIcon size={14} className="text-amber-500" />
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Open Tickets <span className="text-xs text-gray-400 ml-1">({openTickets.length})</span>
+      {/* Tickets */}
+      <div className="card-flat">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-hairline dark:border-white/5">
+          <TicketIcon size={14} className="text-brand-coral flex-shrink-0" />
+          <span className="font-display text-heading-feature text-ink dark:text-white text-sm">
+            Tickets <span className="text-caption text-muted-slate ml-1">({openTickets.length})</span>
           </span>
         </div>
-        <div className="card-body space-y-2">
-          {openTickets.length === 0 ? (
-            <p className="text-xs text-gray-400">No open tickets</p>
-          ) : openTickets.slice(0, 3).map(t => (
-            <div key={t.id} className="flex items-start gap-2">
-              <span className={`badge mt-0.5 flex-shrink-0 ${
-                t.priority === 'high' || t.priority === 'critical' ? 'badge-error' :
-                t.priority === 'medium' ? 'badge-warning' : 'badge-info'
-              }`}>{t.priority}</span>
-              <p className="text-xs text-gray-700 dark:text-gray-300 truncate">{t.subject || (t as any).title}</p>
-            </div>
-          ))}
-        </div>
+        {openTickets.length === 0 ? (
+          <div className="px-5 py-3.5">
+            <p className="text-caption text-muted-slate">No open tickets</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-hairline dark:divide-gray-700/50">
+            {openTickets.map(t => (
+              <div key={t.id}>
+                <div
+                  onClick={() => toggleTicket(t.id)}
+                  className="flex items-start gap-2 px-5 py-2.5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer select-none"
+                >
+                  <span className={`chip text-[11px] py-0.5 flex-shrink-0 ${
+                    t.priority === 'high' || t.priority === 'critical' ? 'chip-red' :
+                    t.priority === 'medium' ? 'chip-amber' : 'chip-blue'
+                  }`}>{t.priority}</span>
+                  <span className="flex-1 text-caption text-ink dark:text-gray-300 leading-relaxed">{t.subject}</span>
+                  {expandedTickets.has(t.id)
+                    ? <ChevronDown size={12} className="text-muted-slate mt-0.5 flex-shrink-0" />
+                    : <ChevronRight size={12} className="text-muted-slate mt-0.5 flex-shrink-0" />}
+                </div>
+                {expandedTickets.has(t.id) && (
+                  <div className="px-5 pb-3 pt-0.5">
+                    <p className="text-caption text-muted-slate leading-relaxed">{t.description}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Recent billing */}
-      <div className="card">
-        <div className="card-header flex items-center gap-2">
-          <CreditCard size={14} className="text-green-500" />
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Recent Billing</span>
+      <div className="card-flat">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-hairline dark:border-white/5">
+          <CreditCard size={14} className="text-brand-coral" />
+          <span className="font-display text-heading-feature text-ink dark:text-white text-sm">Recent Billing</span>
         </div>
-        <div className="card-body space-y-2">
+        <div className="px-5 py-3.5 space-y-2.5">
           {latestBilling.length === 0 ? (
-            <p className="text-xs text-gray-400">No billing records</p>
+            <p className="text-caption text-muted-slate">No billing records</p>
           ) : latestBilling.map(b => (
             <div key={b.id} className="flex items-center justify-between">
               <div className="min-w-0 mr-2">
-                <p className="text-xs text-gray-700 dark:text-gray-300 truncate">{b.description}</p>
-                <p className="text-[10px] text-gray-400">{b.date ? new Date(b.date).toLocaleDateString() : ''}</p>
+                <p className="text-caption text-ink dark:text-gray-300 truncate">{b.description}</p>
+                <p className="text-micro text-muted-slate mt-0.5">{b.date ? new Date(b.date).toLocaleDateString() : ''}</p>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="text-xs font-medium text-gray-900 dark:text-gray-100">${b.amount?.toFixed(2)}</p>
-                <span className={`badge text-[10px] ${b.status === 'paid' ? 'badge-success' : b.status === 'overdue' ? 'badge-error' : 'badge-warning'}`}>
+                <p className="text-body-small font-medium text-ink dark:text-gray-100">${(Number(b.amount) || 0).toFixed(2)}</p>
+                <span className={`chip text-[11px] py-0.5 mt-0.5 ${b.status === 'paid' ? 'chip-green' : b.status === 'overdue' ? 'chip-red' : 'chip-amber'}`}>
                   {b.status}
                 </span>
               </div>
@@ -142,15 +172,15 @@ export default function AccountSummary({ profile, subscription, tickets, billing
 
       {/* Usage analytics */}
       {analytics && (
-        <div className="card">
-          <div className="card-header flex items-center gap-2">
-            <TrendingUp size={14} className="text-blue-500" />
-            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Usage</span>
+        <div className="card-flat">
+          <div className="flex items-center gap-2 px-5 py-3.5 border-b border-hairline dark:border-white/5">
+            <TrendingUp size={14} className="text-brand-coral" />
+            <span className="font-display text-heading-feature text-ink dark:text-white text-sm">Usage</span>
           </div>
-          <div className="card-body">
-            <p className="text-xs text-gray-500 dark:text-gray-400 capitalize mb-1">{analytics.metric_name?.replace(/_/g, ' ')}</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{analytics.total?.toLocaleString()}</p>
-            <p className="text-[10px] text-gray-400 mt-1">{analytics.period}</p>
+          <div className="px-5 py-3.5">
+            <p className="label-mono text-[11px] mb-1">{analytics.metric_name?.replace(/_/g, ' ')}</p>
+            <p className="font-display text-display-product text-brand-near dark:text-white leading-none">{analytics.total?.toLocaleString()}</p>
+            <p className="text-micro text-muted-slate mt-1.5">{analytics.period}</p>
           </div>
         </div>
       )}

@@ -2,7 +2,7 @@
  * VoiceInterface — EVA voice call UI component.
  *
  * Renders the mic button, live transcript, active tool badges,
- * and post-call summary panel.
+ * and post-call summary panel, using the Cohere-inspired design system.
  */
 
 import { useCallback } from 'react'
@@ -38,15 +38,15 @@ function StateIndicator({ state }: { state: VoiceState }) {
     error: 'Error',
   }
   const colors: Record<VoiceState, string> = {
-    idle: 'text-gray-500 dark:text-gray-400',
-    connecting: 'text-yellow-600 dark:text-yellow-400',
+    idle: 'text-muted-slate',
+    connecting: 'text-amber-600 dark:text-amber-400',
     active: 'text-green-600 dark:text-green-400',
-    ending: 'text-orange-500 dark:text-orange-400',
-    ended: 'text-gray-500 dark:text-gray-400',
+    ending: 'text-orange-600 dark:text-orange-400',
+    ended: 'text-muted-slate',
     error: 'text-red-600 dark:text-red-400',
   }
   return (
-    <span className={`text-sm font-medium ${colors[state]}`}>{labels[state]}</span>
+    <span className={`text-body-small font-medium ${colors[state]}`}>{labels[state]}</span>
   )
 }
 
@@ -70,12 +70,12 @@ function MicButton({
       aria-label={isActive ? 'End call' : 'Start call'}
       className={[
         'relative w-24 h-24 rounded-full flex items-center justify-center',
-        'transition-all duration-300 shadow-lg focus:outline-none focus:ring-4',
+        'transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2',
         isActive
-          ? 'bg-red-500 hover:bg-red-600 focus:ring-red-300 dark:focus:ring-red-800'
+          ? 'bg-brand-coral hover:bg-coral-600'
           : isLoading
-          ? 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'
-          : 'bg-brand-600 hover:bg-brand-700 focus:ring-brand-300 dark:focus:ring-brand-800',
+          ? 'bg-muted-slate cursor-not-allowed'
+          : 'bg-brand-near hover:bg-black dark:bg-white/10 dark:hover:bg-white/20',
       ].join(' ')}
     >
       {isLoading ? (
@@ -87,7 +87,7 @@ function MicButton({
       )}
       {/* Pulsing ring when active */}
       {isActive && (
-        <span className="absolute inset-0 rounded-full bg-red-500 opacity-30 animate-ping" />
+        <span className="absolute inset-0 rounded-full bg-coral-400 opacity-30 animate-ping" />
       )}
     </button>
   )
@@ -100,11 +100,8 @@ function ActiveToolBadges({ tools }: { tools: string[] }) {
       {tools.map((t) => (
         <span
           key={t}
-          className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium
-                     bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300
-                     border border-brand-200 dark:border-brand-700"
+          className="chip-coral text-[12px]"
         >
-          <Loader2 size={12} className="animate-spin" />
           {TOOL_LABELS[t] ?? t}
         </span>
       ))}
@@ -115,12 +112,9 @@ function ActiveToolBadges({ tools }: { tools: string[] }) {
 function TranscriptPanel({ lines }: { lines: TranscriptLine[] }) {
   if (lines.length === 0) return null
   return (
-    <div className="w-full max-w-xl mt-4 rounded-xl border border-gray-200 dark:border-gray-700
-                    bg-white dark:bg-gray-800 overflow-hidden">
-      <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
-        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-          Transcript
-        </span>
+    <div className="w-full max-w-xl mt-4 card-flat overflow-hidden">
+      <div className="px-4 py-2.5 border-b border-hairline dark:border-white/5">
+        <span className="label-mono text-[11px]">Transcript</span>
       </div>
       <div className="max-h-64 overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin">
         {lines.map((line, i) => (
@@ -130,10 +124,10 @@ function TranscriptPanel({ lines }: { lines: TranscriptLine[] }) {
           >
             <div
               className={[
-                'max-w-[85%] px-3 py-2 rounded-2xl text-sm',
+                'max-w-[85%] px-3 py-2 text-body-small',
                 line.role === 'assistant'
-                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-sm'
-                  : 'bg-brand-600 text-white rounded-tr-sm',
+                  ? 'bg-surface-stone dark:bg-white/5 text-ink dark:text-gray-100 rounded-lg rounded-tl-sm'
+                  : 'bg-brand-near dark:bg-white dark:text-ink text-white rounded-lg rounded-tr-sm',
               ].join(' ')}
             >
               {line.text}
@@ -156,7 +150,6 @@ function CallSummaryPanel({ sessionId }: { sessionId: string }) {
       if (!res.ok) throw new Error('Summary not ready')
       return res.json()
     },
-    // LLM summary generation can take 5–15 s; retry with exponential backoff.
     retry: 8,
     retryDelay: (attempt) => Math.min(2000 * 2 ** attempt, 8000),
     enabled: !!sessionId,
@@ -164,8 +157,7 @@ function CallSummaryPanel({ sessionId }: { sessionId: string }) {
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-xl mt-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700
-                      bg-white dark:bg-gray-800 flex items-center gap-2 text-sm text-gray-500">
+      <div className="w-full max-w-xl mt-4 p-4 card-flat flex items-center gap-2 text-caption text-muted-slate">
         <Loader2 size={16} className="animate-spin" />
         Generating call summary…
       </div>
@@ -175,29 +167,20 @@ function CallSummaryPanel({ sessionId }: { sessionId: string }) {
   if (isError || !data) return null
 
   return (
-    <div className="w-full max-w-xl mt-4 rounded-xl border border-green-200 dark:border-green-700
-                    bg-white dark:bg-gray-800 overflow-hidden">
-      <div className="px-4 py-2 border-b border-green-100 dark:border-green-800 flex items-center gap-2">
+    <div className="w-full max-w-xl mt-4 card-flat border-green-200 dark:border-green-800 overflow-hidden">
+      <div className="px-4 py-2.5 border-b border-green-100 dark:border-green-800 flex items-center gap-2">
         <CheckCircle size={14} className="text-green-600 dark:text-green-400" />
-        <span className="text-xs font-semibold text-green-700 dark:text-green-400 uppercase tracking-wide">
-          Call Summary
-        </span>
+        <span className="label-mono text-[11px] text-green-700 dark:text-green-400">Call Summary</span>
       </div>
-      <div className="px-4 py-3 space-y-3 text-sm">
-        <p className="text-gray-700 dark:text-gray-300">{data.conversation_summary}</p>
+      <div className="px-4 py-3 space-y-3 text-body-small">
+        <p className="text-ink dark:text-gray-300">{data.conversation_summary}</p>
 
         {data.sources_used?.length > 0 && (
           <div>
-            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-              Sources consulted:
-            </span>
-            <div className="flex flex-wrap gap-1 mt-1">
+            <span className="label-mono text-[11px] mb-1 block">Sources consulted:</span>
+            <div className="flex flex-wrap gap-1">
               {data.sources_used.map((s: string) => (
-                <span
-                  key={s}
-                  className="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-gray-700
-                             text-gray-600 dark:text-gray-300"
-                >
+                <span key={s} className="chip-gray text-[12px]">
                   {TOOL_LABELS[s] ?? s}
                 </span>
               ))}
@@ -207,10 +190,8 @@ function CallSummaryPanel({ sessionId }: { sessionId: string }) {
 
         {data.recommended_next_actions?.length > 0 && (
           <div>
-            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-              Recommended next steps:
-            </span>
-            <ul className="mt-1 space-y-1 list-disc list-inside text-gray-600 dark:text-gray-400">
+            <span className="label-mono text-[11px] mb-1 block">Recommended next steps:</span>
+            <ul className="space-y-1 list-disc list-inside text-caption text-muted-slate">
               {data.recommended_next_actions.map((action: string, i: number) => (
                 <li key={i}>{action}</li>
               ))}
@@ -244,10 +225,10 @@ export default function VoiceInterface() {
     <div className="flex flex-col items-center gap-6 py-8 px-4">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="font-display text-heading-card text-ink dark:text-white">
           EVA Voice Assistant
         </h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-caption text-muted-slate">
           Speak naturally — EVA can look up your billing, tickets, and more.
         </p>
       </div>
@@ -261,12 +242,11 @@ export default function VoiceInterface() {
       {/* Active tool indicators */}
       <ActiveToolBadges tools={activeTools} />
 
-      {/* Interrupt button (only shown while active) */}
+      {/* Interrupt button */}
       {state === 'active' && (
         <button
           onClick={interrupt}
-          className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
-                     underline underline-offset-2 transition-colors"
+          className="text-caption text-muted-slate hover:text-ink dark:hover:text-gray-300 underline underline-offset-2 transition-colors"
         >
           Stop speaking
         </button>
@@ -274,8 +254,7 @@ export default function VoiceInterface() {
 
       {/* Error message */}
       {error && (
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 dark:bg-red-900/20
-                        border border-red-200 dark:border-red-800 text-sm text-red-700 dark:text-red-400">
+        <div className="flex items-center gap-2 px-4 py-2 rounded-lg chip-red">
           <AlertCircle size={16} />
           {error}
         </div>

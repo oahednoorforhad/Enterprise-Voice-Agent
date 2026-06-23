@@ -33,22 +33,21 @@ export function AppShell() {
     queryFn: () => api.usageAnalytics(customerId),
   })
 
-  // Detect offline
   if ([profileQuery, subscriptionQuery, ticketsQuery, billingQuery, analyticsQuery].some(
-    q => q.isError || (q.data && !q.data.success)
+    q => q.isError
   )) {
     setBackendOffline(true)
   }
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Left panel — chat or voice (rendered by child route) */}
+      {/* Left panel — main content rendered by child route */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <Outlet />
       </div>
 
       {/* Right panel — always-visible account data */}
-      <div className="w-[380px] flex-shrink-0 border-l border-gray-200 dark:border-gray-700 overflow-y-auto">
+      <div className="w-[380px] flex-shrink-0 border-l border-hairline dark:border-white/5 overflow-y-auto bg-surface-stone dark:bg-surface-dark-elevated">
         <AccountSummary
           profile={profileQuery.data?.data ?? null}
           subscription={subscriptionQuery.data?.data ?? null}

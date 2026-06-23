@@ -1,4 +1,5 @@
 {
+  "plan_tier": "enterprise",
   "subscription": {
     "plan_name": "Enterprise",
     "status": "active",

@@ -15,10 +15,10 @@ export default function LoadingSpinner({
     <div className="flex flex-col items-center justify-center gap-3">
       <Loader2
         size={size}
-        className="animate-spin text-brand-500 dark:text-brand-400"
+        className="animate-spin text-brand-coral"
       />
       {message && (
-        <p className="text-sm text-gray-500 dark:text-gray-400">{message}</p>
+        <p className="text-caption text-muted-slate">{message}</p>
       )}
     </div>
   )

@@ -18,7 +18,6 @@ export function AuthCallbackPage() {
     try {
       localStorage.setItem('jwt', token)
 
-      // Decode JWT to get customer_id from sub claim
       const payload = JSON.parse(atob(token.split('.')[1]))
       const customerId = payload.sub
 
@@ -39,17 +38,17 @@ export function AuthCallbackPage() {
 
   if (status === 'error') {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 max-w-sm text-center">
-          <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
+      <div className="flex items-center justify-center min-h-screen bg-surface-white dark:bg-surface-dark">
+        <div className="card-flat p-8 max-w-sm text-center">
+          <h1 className="font-display text-heading-feature text-ink dark:text-white mb-2">
             Authentication Failed
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          <p className="text-caption text-muted-slate mb-4">
             No token was received from the authentication provider.
           </p>
           <a
             href="/"
-            className="text-brand-600 dark:text-brand-400 text-sm font-medium hover:underline"
+            className="text-body-small font-medium text-brand-blue hover:underline"
           >
             Back to home
           </a>
@@ -59,8 +58,8 @@ export function AuthCallbackPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="animate-pulse text-gray-400 dark:text-gray-500 text-sm">
+    <div className="flex items-center justify-center min-h-screen bg-surface-white dark:bg-surface-dark">
+      <div className="animate-pulse text-caption text-muted-slate">
         Completing sign-in…
       </div>
     </div>
