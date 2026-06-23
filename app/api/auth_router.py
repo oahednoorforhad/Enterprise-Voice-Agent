@@ -102,6 +102,7 @@ async def callback_google(
             company=company,
             plan_tier="free",
             is_active=True,
+            is_demo=True,
         )
         session.add(customer)
         await session.flush()
