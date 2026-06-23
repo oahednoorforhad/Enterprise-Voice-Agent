@@ -23,8 +23,9 @@ export function AppChatPage() {
   const chatMutation = useMutation({
     mutationFn: (message: string) =>
       api.chat({ message, customer_id: mock.customerId }),
-    onSuccess: (result: Record<string, unknown>) => {
-      if (result && !result.response) {
+    onSuccess: (result) => {
+      const data = result.data as Record<string, unknown> | null
+      if (result && !data?.response) {
         setBackendOffline(true)
         const fallback: Message = {
           id: `msg-${Date.now()}`,
@@ -38,10 +39,10 @@ export function AppChatPage() {
       const assistantMsg: Message = {
         id: `msg-${Date.now()}`,
         role: 'assistant',
-        content: (result.response as string) ?? 'Sorry, I could not process that request.',
+        content: (data?.response as string) ?? 'Sorry, I could not process that request.',
         timestamp: new Date().toISOString(),
-        tool_calls_made: (result.tool_calls_made as string[]) ?? [],
-        evidence: (result.evidence as Record<string, unknown> | null) ?? null,
+        tool_calls_made: (data?.tool_calls_made as string[]) ?? [],
+        evidence: (data?.evidence as Record<string, unknown> | null) ?? null,
       }
       setMessages((prev) => [...prev, assistantMsg])
     },

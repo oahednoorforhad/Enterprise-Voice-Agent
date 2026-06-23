@@ -196,6 +196,7 @@ const mockProfile: CustomerProfile = {
   created_at: '2023-06-15T08:00:00Z',
   tier: 'enterprise',
   status: 'active',
+  active_scenario: null,
 }
 
 const mockSubscription: Subscription = {
