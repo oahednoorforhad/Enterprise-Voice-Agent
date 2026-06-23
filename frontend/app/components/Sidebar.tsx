@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import {
-  LayoutDashboard,
   MessageSquare,
-  BarChart3,
-  BookOpen,
-  Users,
   Mic,
   ChevronLeft,
   ChevronRight,
@@ -23,12 +19,8 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { href: '/', label: 'Overview', icon: LayoutDashboard },
-  { href: '/chat', label: 'Chat', icon: MessageSquare },
-  { href: '/voice', label: 'Voice', icon: Mic },
-  { href: '/dashboard', label: 'Dashboard', icon: Users },
-  { href: '/knowledge', label: 'Knowledge', icon: BookOpen },
-  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/app/chat', label: 'Chat', icon: MessageSquare },
+  { href: '/app/voice', label: 'Voice', icon: Mic },
 ]
 
 export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
@@ -39,31 +31,38 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
 
   const handleLogout = () => {
     localStorage.removeItem('jwt')
-    navigate({ to: '/login', replace: true })
+    localStorage.removeItem('active_scenario_name')
+    navigate({ to: '/', replace: true })
   }
 
-  // Close mobile sidebar on route change
   useEffect(() => {
     setMobileOpen(false)
   }, [location.pathname])
 
+  // Dispatch collapse changes so __root can adjust main margin
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('sidebar-collapse', { detail: collapsed }))
+  }, [collapsed])
+
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-gray-200 dark:border-gray-700/50">
-        <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center flex-shrink-0">
-          <Sparkles size={18} className="text-white" />
-        </div>
-        {!collapsed && (
-          <div className="min-w-0">
-            <h1 className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
-              Voice Agent
-            </h1>
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 truncate">
-              Enterprise Console
-            </p>
+      {/* Near-black brand header */}
+      <div className="bg-brand-near dark:bg-black px-5 py-5">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-sm bg-white/10 flex items-center justify-center flex-shrink-0">
+            <Sparkles size={16} className="text-coral-400" />
           </div>
-        )}
+          {!collapsed && (
+            <div className="min-w-0">
+              <h1 className="font-display text-heading-feature text-white truncate leading-none">
+                EVA
+              </h1>
+              <p className="text-micro text-white/50 truncate mt-0.5">
+                Enterprise Console
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Navigation */}
@@ -80,16 +79,15 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
               <item.icon size={20} className="flex-shrink-0" />
               {!collapsed && <span>{item.label}</span>}
               {isActive && !collapsed && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-brand-600 dark:bg-brand-400" />
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-ink dark:bg-white" />
               )}
             </Link>
           )
         })}
       </nav>
 
-      {/* Bottom */}
-      <div className="px-3 py-4 border-t border-gray-200 dark:border-gray-700/50 space-y-2">
-        {/* Dark mode toggle */}
+      {/* Bottom actions */}
+      <div className="px-3 py-4 border-t border-hairline dark:border-white/5 space-y-1">
         <button
           onClick={onToggleDark}
           className="sidebar-link w-full"
@@ -99,7 +97,6 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
           {!collapsed && <span>{isDark ? 'Light mode' : 'Dark mode'}</span>}
         </button>
 
-        {/* Logout */}
         <button
           onClick={handleLogout}
           className="sidebar-link w-full"
@@ -109,7 +106,6 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
           {!collapsed && <span>Logout</span>}
         </button>
 
-        {/* Collapse toggle (desktop only) */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="sidebar-link w-full hidden md:flex"
@@ -134,16 +130,16 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
 
       {/* Mobile hamburger */}
       <button
-        className="fixed top-4 left-4 z-50 md:hidden p-2 rounded-lg bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700"
+        className="fixed top-4 left-4 z-50 md:hidden p-2 rounded-sm bg-surface-white dark:bg-surface-dark-elevated shadow-sm border border-hairline dark:border-white/10"
         onClick={() => setMobileOpen(true)}
         aria-label="Open menu"
       >
-        <Menu size={20} className="text-gray-600 dark:text-gray-300" />
+        <Menu size={20} className="text-ink dark:text-gray-100" />
       </button>
 
       {/* Desktop sidebar */}
       <aside
-        className={`hidden md:flex flex-col fixed left-0 top-0 h-full bg-white dark:bg-gray-800/95 backdrop-blur-sm border-r border-gray-200 dark:border-gray-700/50 transition-all duration-300 z-30 ${
+        className={`hidden md:flex flex-col fixed left-0 top-0 h-full bg-surface-white dark:bg-surface-dark-elevated border-r border-hairline dark:border-white/5 transition-all duration-300 z-30 ${
           collapsed ? 'w-[68px]' : 'w-[var(--sidebar-width)]'
         }`}
       >
@@ -152,17 +148,17 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
 
       {/* Mobile sidebar drawer */}
       <aside
-        className={`md:hidden fixed inset-y-0 left-0 z-50 w-[280px] bg-white dark:bg-gray-800/95 backdrop-blur-sm border-r border-gray-200 dark:border-gray-700/50 transform transition-transform duration-300 ${
+        className={`md:hidden fixed inset-y-0 left-0 z-50 w-[280px] bg-surface-white dark:bg-surface-dark-elevated border-r border-hairline dark:border-white/5 transform transition-transform duration-300 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="flex justify-end p-3">
           <button
             onClick={() => setMobileOpen(false)}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-sm hover:bg-surface-stone dark:hover:bg-white/5 transition-colors"
             aria-label="Close menu"
           >
-            <X size={20} className="text-gray-500" />
+            <X size={20} className="text-muted-slate" />
           </button>
         </div>
         {sidebarContent}

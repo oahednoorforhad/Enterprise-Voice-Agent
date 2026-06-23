@@ -55,6 +55,8 @@ class Customer(TimestampMixin, Base):
     company: Mapped[str | None] = mapped_column(String(255))
     plan_tier: Mapped[str] = mapped_column(String(50), default="free")
     is_active: Mapped[bool] = mapped_column(default=True)
+    is_demo: Mapped[bool] = mapped_column(default=True, server_default=text("true"))
+    active_scenario: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     # Relationships
     subscriptions: Mapped[list["Subscription"]] = relationship(

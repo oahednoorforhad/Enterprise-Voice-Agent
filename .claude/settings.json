@@ -2,5 +2,16 @@
   "enabledPlugins": {
     "code-review@claude-plugins-official": true,
     "github@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Read(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "Agent(*)"
+    ]
   }
 }

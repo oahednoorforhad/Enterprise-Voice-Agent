@@ -4,7 +4,11 @@ Mounted at ``/api/v1/chat``.  Accepts a plain-text message plus customer
 identifier and returns a structured ``ChatResponse`` from the orchestrator.
 """
 
+import asyncio
+import json
+
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, get_llm_client
@@ -20,13 +24,13 @@ chat_router = APIRouter(prefix="/api/v1/chat", tags=["Chat"])
 _memory = DbConversationStore()
 
 
-@chat_router.post("/", response_model=ChatResponse)
+@chat_router.post("/")
 async def chat(
     request: ChatRequest,
     session: AsyncSession = Depends(get_db_session),
     current_user: dict = Depends(get_current_user),
     llm: LLMClient = Depends(get_llm_client),
-) -> ChatResponse:
+) -> dict:
     """Process a single chat turn through the reasoning engine.
 
     Accepts a ``ChatRequest`` with ``message`` and ``customer_id``, runs
@@ -66,4 +70,63 @@ async def chat(
         assistant_response=result.response,
     )
 
-    return result
+    return {
+        "success": True,
+        "data": result.model_dump(),
+        "error": None,
+    }
+
+
+@chat_router.post("/stream")
+async def chat_stream(
+    request: ChatRequest,
+    session: AsyncSession = Depends(get_db_session),
+    current_user: dict = Depends(get_current_user),
+    llm: LLMClient = Depends(get_llm_client),
+) -> StreamingResponse:
+    customer_id = current_user["customer_id"]
+    customer_context = {**current_user, "customer_id": customer_id}
+
+    history_context = await _memory.format_prompt_context(session, customer_id)
+
+    factory = get_session_factory()
+    orchestrator = OrchestratorService(
+        llm_client=llm,
+        session_factory=factory,
+        customer_id=customer_id,
+        customer_context=customer_context,
+    )
+
+    user_message = request.message
+
+    async def event_generator():
+        final_response: str | None = None
+        tool_calls_made: list[str] = []
+
+        async for event in orchestrator.process_turn_streaming(
+            user_message, conversation_history=history_context
+        ):
+            data = json.dumps(event)
+            yield f"data: {data}\n\n"
+            await asyncio.sleep(0)
+
+            if event.get("stage") == "done":
+                final_response = event.get("response", "")
+                tool_calls_made = event.get("tool_calls_made", [])
+
+        if final_response is not None:
+            await _memory.add_turn(
+                session=session,
+                customer_id=customer_id,
+                user_message=user_message,
+                assistant_response=final_response,
+            )
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )

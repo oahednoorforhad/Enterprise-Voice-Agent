@@ -1,0 +1,127 @@
+{
+  "plan_tier": "professional",
+  "subscription": {
+    "plan_name": "Professional",
+    "status": "active",
+    "start_date": "2025-03-01T00:00:00Z",
+    "end_date": "2027-03-01T00:00:00Z",
+    "monthly_amount": 299.00
+  },
+  "billing_records": [
+    {
+      "amount": 299.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Professional Plan - January 2026",
+      "due_date": "2026-01-01T00:00:00Z",
+      "paid_at": "2026-01-03T00:00:00Z"
+    },
+    {
+      "amount": 299.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Professional Plan - February 2026",
+      "due_date": "2026-02-01T00:00:00Z",
+      "paid_at": "2026-02-02T00:00:00Z"
+    },
+    {
+      "amount": 299.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Professional Plan - March 2026",
+      "due_date": "2026-03-01T00:00:00Z",
+      "paid_at": "2026-03-01T00:00:00Z"
+    },
+    {
+      "amount": 299.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Professional Plan - March 2026 (DUPLICATE CHARGE)",
+      "due_date": "2026-03-01T00:00:00Z",
+      "paid_at": "2026-03-01T14:37:00Z"
+    },
+    {
+      "amount": 299.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Professional Plan - April 2026",
+      "due_date": "2026-04-01T00:00:00Z",
+      "paid_at": "2026-04-04T00:00:00Z"
+    }
+  ],
+  "support_tickets": [
+    {
+      "title": "Double charged in March 2026 - requesting immediate refund",
+      "status": "open",
+      "description": "Customer was charged twice on March 1, 2026 for their Professional Plan subscription. Both transactions of $299.00 were processed within hours of each other (00:00 and 14:37 UTC). Customer noticed the duplicate charge on their credit card statement and contacted support on March 8. They are frustrated and requesting an immediate refund of $299.00. Billing team has confirmed the duplicate transaction in the payment processor logs.",
+      "category": "billing",
+      "priority": "high",
+      "assigned_to": "billing-team",
+      "resolved_at": null
+    },
+    {
+      "title": "Request for updated invoice for Q1 2026",
+      "status": "open",
+      "description": "Customer requested corrected invoices for Q1 2026 to reflect only one charge per month, for their accounting records. Waiting on billing dispute resolution before issuing corrected documentation.",
+      "category": "billing",
+      "priority": "medium",
+      "assigned_to": "billing-team",
+      "resolved_at": null
+    }
+  ],
+  "usage_analytics": [
+    {
+      "metric_name": "api_calls",
+      "metric_value": 7820.0,
+      "period_start": "2026-01-01T00:00:00Z",
+      "period_end": "2026-01-31T23:59:59Z"
+    },
+    {
+      "metric_name": "api_calls",
+      "metric_value": 8150.0,
+      "period_start": "2026-02-01T00:00:00Z",
+      "period_end": "2026-02-28T23:59:59Z"
+    },
+    {
+      "metric_name": "api_calls",
+      "metric_value": 8340.0,
+      "period_start": "2026-03-01T00:00:00Z",
+      "period_end": "2026-03-31T23:59:59Z"
+    },
+    {
+      "metric_name": "active_sessions",
+      "metric_value": 412.0,
+      "period_start": "2026-03-01T00:00:00Z",
+      "period_end": "2026-03-31T23:59:59Z"
+    },
+    {
+      "metric_name": "api_calls",
+      "metric_value": 7990.0,
+      "period_start": "2026-04-01T00:00:00Z",
+      "period_end": "2026-04-30T23:59:59Z"
+    },
+    {
+      "metric_name": "error_rate",
+      "metric_value": 1.2,
+      "period_start": "2026-04-01T00:00:00Z",
+      "period_end": "2026-04-30T23:59:59Z"
+    }
+  ],
+  "crm_notes": [
+    {
+      "content": "Customer called in on March 8 very frustrated about the duplicate charge. They mentioned they've been a loyal customer for over a year and expect better from us. Escalated immediately to billing team. Apologized and assured them a refund would be processed within 5-7 business days.",
+      "note_type": "escalation",
+      "author": "customer-success"
+    },
+    {
+      "content": "Billing team confirmed duplicate transaction ID in Stripe. Root cause appears to be a webhook retry event that triggered a second invoice. Engineering has been notified to patch the idempotency issue. Refund of $299.00 has been initiated and should appear within 3-5 business days.",
+      "note_type": "internal",
+      "author": "billing-team"
+    },
+    {
+      "content": "Follow-up call scheduled for March 20 to confirm refund receipt and rebuild customer trust. Consider offering a courtesy discount on next month's invoice as a goodwill gesture.",
+      "note_type": "action-item",
+      "author": "customer-success"
+    }
+  ]
+}

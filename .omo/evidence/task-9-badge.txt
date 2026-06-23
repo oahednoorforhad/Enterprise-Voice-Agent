@@ -1,0 +1,14 @@
+Task 9: Demo Badge — Verification
+===================================
+
+File: frontend/app/components/DemoBadge.tsx
+Status: CORRECT — matches spec exactly.
+
+What it does:
+1. Reads `active_scenario_name` from localStorage (with SSR guard)
+2. Falls back to 'Demo' if no scenario set
+3. Renders an amber-bordered badge with "DEMO MODE" label and FlaskConical icon
+4. Shows the scenario name (truncated)
+5. Includes a "Switch Persona →" link to /scenarios
+
+Last verified: 2026-06-23

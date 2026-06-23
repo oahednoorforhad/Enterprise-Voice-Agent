@@ -18,6 +18,7 @@ class CustomerProfile(BaseModel):
     created_at: datetime | None = None
     tier: str | None = None
     status: str | None = None
+    active_scenario: str | None = None
 
 
 class SubscriptionStatus(BaseModel):

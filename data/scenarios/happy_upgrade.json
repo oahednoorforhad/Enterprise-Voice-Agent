@@ -1,0 +1,118 @@
+{
+  "plan_tier": "enterprise",
+  "subscription": {
+    "plan_name": "Enterprise",
+    "status": "active",
+    "start_date": "2025-02-01T00:00:00Z",
+    "end_date": "2027-02-01T00:00:00Z",
+    "monthly_amount": 399.00
+  },
+  "billing_records": [
+    {
+      "amount": 99.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Starter Plan - March 2026",
+      "due_date": "2026-03-01T00:00:00Z",
+      "paid_at": "2026-03-01T00:00:00Z"
+    },
+    {
+      "amount": 99.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Starter Plan - April 2026",
+      "due_date": "2026-04-01T00:00:00Z",
+      "paid_at": "2026-04-02T00:00:00Z"
+    },
+    {
+      "amount": 99.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Starter Plan - May 2026",
+      "due_date": "2026-05-01T00:00:00Z",
+      "paid_at": "2026-05-01T00:00:00Z"
+    },
+    {
+      "amount": 225.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Enterprise Plan - June 2026 (prorated upgrade from Starter, effective June 15)",
+      "due_date": "2026-06-15T00:00:00Z",
+      "paid_at": "2026-06-15T00:00:00Z"
+    },
+    {
+      "amount": 399.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Enterprise Plan - July 2026",
+      "due_date": "2026-07-01T00:00:00Z",
+      "paid_at": "2026-07-01T00:00:00Z"
+    }
+  ],
+  "support_tickets": [
+    {
+      "title": "Questions about Enterprise Plan features and API limits",
+      "status": "resolved",
+      "description": "Customer wanted to understand the differences between Starter and Enterprise plans before upgrading. Specifically asked about increased API call limits, advanced analytics dashboard, priority support SLAs, and dedicated account manager. Customer success team walked them through all features on a 30-minute demo call.",
+      "category": "general",
+      "priority": "low",
+      "assigned_to": "customer-success",
+      "resolved_at": "2026-06-12T00:00:00Z"
+    }
+  ],
+  "usage_analytics": [
+    {
+      "metric_name": "api_calls",
+      "metric_value": 3200.0,
+      "period_start": "2026-03-01T00:00:00Z",
+      "period_end": "2026-03-31T23:59:59Z"
+    },
+    {
+      "metric_name": "api_calls",
+      "metric_value": 7800.0,
+      "period_start": "2026-04-01T00:00:00Z",
+      "period_end": "2026-04-30T23:59:59Z"
+    },
+    {
+      "metric_name": "api_calls",
+      "metric_value": 12400.0,
+      "period_start": "2026-05-01T00:00:00Z",
+      "period_end": "2026-05-31T23:59:59Z"
+    },
+    {
+      "metric_name": "api_calls",
+      "metric_value": 15100.0,
+      "period_start": "2026-06-01T00:00:00Z",
+      "period_end": "2026-06-30T23:59:59Z"
+    },
+    {
+      "metric_name": "active_users",
+      "metric_value": 87.0,
+      "period_start": "2026-06-01T00:00:00Z",
+      "period_end": "2026-06-30T23:59:59Z"
+    },
+    {
+      "metric_name": "avg_response_time_ms",
+      "metric_value": 185.0,
+      "period_start": "2026-06-01T00:00:00Z",
+      "period_end": "2026-06-30T23:59:59Z"
+    }
+  ],
+  "crm_notes": [
+    {
+      "content": "Customer has been on a remarkable growth trajectory. API usage went from 3,200 calls in March to over 15,000 in June — a 4.7x increase in just 4 months! They were bumping into Starter plan limits and the decision to upgrade to Enterprise was a natural fit. Upgrade call went smoothly and they're extremely excited about the advanced analytics and higher limits.",
+      "note_type": "general",
+      "author": "customer-success"
+    },
+    {
+      "content": "Upgrade to Enterprise Plan completed on June 15, 2026. Customer success manager personally onboarded them to the Enterprise dashboard. Dedicated account manager assigned. First Enterprise QBR scheduled for August 2026. This is a great expansion win for the team!",
+      "note_type": "milestone",
+      "author": "account-management"
+    },
+    {
+      "content": "Customer sent a glowing note after the upgrade: 'The EVA platform has become core to our operations. The Enterprise plan gives us exactly the headroom we need to scale. Looking forward to our continued partnership.' Excellent expansion candidate for the annual plan in 2027.",
+      "note_type": "positive-feedback",
+      "author": "customer-success"
+    }
+  ]
+}

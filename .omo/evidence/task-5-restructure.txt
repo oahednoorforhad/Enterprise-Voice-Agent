@@ -1,0 +1,27 @@
+Task 5: Full Frontend Restructure — split-panel layout
+=====================================================
+
+Status: DONE
+
+Deleted files:
+  - frontend/app/routes/login.tsx
+  - frontend/app/routes/dashboard.tsx
+  - frontend/app/routes/knowledge.tsx
+  - frontend/app/routes/analytics.tsx
+  - frontend/app/routes/chat.tsx (moved to app/chat.tsx)
+  - frontend/app/routes/voice.tsx (moved to app/voice.tsx)
+
+Created files:
+  - frontend/app/routes/index.tsx (replaced with LandingPage — CTA landing, no auth)
+  - frontend/app/routes/app.tsx (AppShell — split-panel with AccountSummary right panel)
+  - frontend/app/routes/app/chat.tsx (moved from routes/chat.tsx, adapted for split-panel)
+  - frontend/app/routes/app/voice.tsx (moved from routes/voice.tsx, adapted for split-panel)
+  - frontend/app/routes/scenarios.tsx (placeholder for Task 8)
+  - frontend/app/components/AccountSummary.tsx (right panel displaying profile, subscription, tickets, billing, analytics)
+  - frontend/app/components/DemoBadge.tsx (placeholder badge for Task 9)
+
+Modified files:
+  - frontend/app/router.tsx (new route tree with /, /app/chat, /app/voice, /scenarios, /auth/callback)
+  - frontend/app/routes/__root.tsx (conditional Sidebar render, conditional p-6 based on isLoggedIn)
+  - frontend/app/components/Sidebar.tsx (reduced navItems to Chat & Voice, redirect to / on logout)
+  - frontend/app/routes/auth_callback.tsx (redirect to /app/chat instead of /; link to / instead of /login)

@@ -1,0 +1,119 @@
+{
+  "plan_tier": "professional",
+  "subscription": {
+    "plan_name": "Professional",
+    "status": "active",
+    "start_date": "2025-08-01T00:00:00Z",
+    "end_date": "2026-08-01T00:00:00Z",
+    "monthly_amount": 299.00
+  },
+  "billing_records": [
+    {
+      "amount": 299.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Professional Plan - March 2026",
+      "due_date": "2026-03-01T00:00:00Z",
+      "paid_at": "2026-03-04T00:00:00Z"
+    },
+    {
+      "amount": 299.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Professional Plan - April 2026",
+      "due_date": "2026-04-01T00:00:00Z",
+      "paid_at": "2026-04-07T00:00:00Z"
+    },
+    {
+      "amount": 299.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Professional Plan - May 2026",
+      "due_date": "2026-05-01T00:00:00Z",
+      "paid_at": "2026-05-12T00:00:00Z"
+    },
+    {
+      "amount": 299.00,
+      "currency": "USD",
+      "status": "overdue",
+      "description": "Professional Plan - June 2026",
+      "due_date": "2026-06-01T00:00:00Z",
+      "paid_at": null
+    }
+  ],
+  "support_tickets": [
+    {
+      "title": "Response times have become unacceptably slow - SLA breached",
+      "status": "open",
+      "description": "Over the past 6 weeks, average API response times have degraded from ~200ms to over 2,800ms during peak hours (9am-5pm EST). This is causing our voice agent conversations to stall and customers to hang up. We selected EVA specifically for its low-latency promise. We've submitted 3 reports about this with no meaningful resolution. Our team is now evaluating competitor platforms.",
+      "category": "performance",
+      "priority": "high",
+      "assigned_to": "engineering-team",
+      "resolved_at": null
+    },
+    {
+      "title": "Missing feature: bulk export of call transcripts",
+      "status": "open",
+      "description": "We need the ability to bulk export call transcripts in CSV or JSON format for compliance and QA review. This was listed as 'coming in Q1 2026' on the roadmap but has not shipped. We rely on this for our weekly QA audits and are currently using manual copy-paste workarounds. Competitors offer this as a standard feature. This is a dealbreaker for continued use of the platform.",
+      "category": "feature-request",
+      "priority": "medium",
+      "assigned_to": "product-team",
+      "resolved_at": null
+    }
+  ],
+  "usage_analytics": [
+    {
+      "metric_name": "api_calls",
+      "metric_value": 12100.0,
+      "period_start": "2026-03-01T00:00:00Z",
+      "period_end": "2026-03-31T23:59:59Z"
+    },
+    {
+      "metric_name": "api_calls",
+      "metric_value": 8700.0,
+      "period_start": "2026-04-01T00:00:00Z",
+      "period_end": "2026-04-30T23:59:59Z"
+    },
+    {
+      "metric_name": "api_calls",
+      "metric_value": 5200.0,
+      "period_start": "2026-05-01T00:00:00Z",
+      "period_end": "2026-05-31T23:59:59Z"
+    },
+    {
+      "metric_name": "api_calls",
+      "metric_value": 3500.0,
+      "period_start": "2026-06-01T00:00:00Z",
+      "period_end": "2026-06-30T23:59:59Z"
+    },
+    {
+      "metric_name": "avg_response_time_ms",
+      "metric_value": 2840.0,
+      "period_start": "2026-06-01T00:00:00Z",
+      "period_end": "2026-06-30T23:59:59Z"
+    },
+    {
+      "metric_name": "session_drop_rate",
+      "metric_value": 28.4,
+      "period_start": "2026-06-01T00:00:00Z",
+      "period_end": "2026-06-30T23:59:59Z"
+    }
+  ],
+  "crm_notes": [
+    {
+      "content": "CHURN RISK - HIGH. Customer's usage has dropped 71% from March to June (12,100 → 3,500 api_calls). They have 2 unresolved tickets, 1 overdue invoice, and their subscription expires in ~6 weeks (Aug 1). Customer has explicitly mentioned evaluating competitors. Immediate executive intervention recommended.",
+      "note_type": "churn-alert",
+      "author": "customer-success"
+    },
+    {
+      "content": "ACTION ITEMS: (1) Engineering to provide written SLA remediation plan for response time issues by June 25. (2) Product to commit to bulk transcript export ship date in writing — current estimate is Q3 2026. (3) Finance to waive late fee on June invoice as goodwill gesture. (4) VP of Customer Success to personally call customer this week.",
+      "note_type": "action-item",
+      "author": "customer-success"
+    },
+    {
+      "content": "Customer meeting on June 18: They remain unsatisfied. Mentioned they've completed a POC with a competitor and are 'close to making a decision.' We proposed a 3-month performance SLA guarantee with automatic credits if response times exceed 500ms. Customer said they will discuss internally. Renewal window is closing fast.",
+      "note_type": "meeting-notes",
+      "author": "account-management"
+    }
+  ]
+}

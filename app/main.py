@@ -12,12 +12,15 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.admin_router import admin_router
 from app.api.auth_router import auth_router
 from app.api.chat_router import chat_router
+from app.api.demo_router import demo_router
 from app.api.tools_router import tools_router
 from app.api.voice_router import voice_router
 from app.config import get_settings
@@ -119,6 +122,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(SessionMiddleware, secret_key=settings.jwt_secret)
 
     @app.get("/health", tags=["meta"])
     async def health() -> dict[str, str]:
@@ -166,6 +170,8 @@ def create_app() -> FastAPI:
     app.include_router(tools_router)
     app.include_router(chat_router)
     app.include_router(voice_router)
+    app.include_router(admin_router)
+    app.include_router(demo_router)
 
     return app
 

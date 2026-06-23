@@ -12,29 +12,19 @@ interface MetricCardProps {
 
 const colorMap = {
   brand: {
-    bg: 'bg-brand-50 dark:bg-brand-950/30',
-    icon: 'text-brand-600 dark:text-brand-400',
-    border: 'border-brand-200 dark:border-brand-800',
+    icon: 'text-brand-coral',
   },
   emerald: {
-    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-    icon: 'text-emerald-600 dark:text-emerald-400',
-    border: 'border-emerald-200 dark:border-emerald-800',
+    icon: 'text-green-500',
   },
   amber: {
-    bg: 'bg-amber-50 dark:bg-amber-950/30',
-    icon: 'text-amber-600 dark:text-amber-400',
-    border: 'border-amber-200 dark:border-amber-800',
+    icon: 'text-amber-500',
   },
   rose: {
-    bg: 'bg-rose-50 dark:bg-rose-950/30',
-    icon: 'text-rose-600 dark:text-rose-400',
-    border: 'border-rose-200 dark:border-rose-800',
+    icon: 'text-coral-400',
   },
   violet: {
-    bg: 'bg-violet-50 dark:bg-violet-950/30',
-    icon: 'text-violet-600 dark:text-violet-400',
-    border: 'border-violet-200 dark:border-violet-800',
+    icon: 'text-brand-blue',
   },
 }
 
@@ -51,22 +41,22 @@ export default function MetricCard({
 
   return (
     <div
-      className={`card p-6 ${onClick ? 'cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : ''} transition-all duration-200`}
+      className={`card-flat p-5 ${onClick ? 'cursor-pointer hover:border-ink/20 active:scale-[0.99]' : ''} transition-all duration-200`}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') onClick() } : undefined}
     >
       <div className="flex items-start justify-between mb-4">
-        <div className={`p-2.5 rounded-lg ${c.bg} ${c.border} border`}>
+        <div className={`p-2.5 rounded-sm bg-surface-stone dark:bg-surface-dark-elevated`}>
           <Icon size={20} className={c.icon} />
         </div>
         {trend && (
           <span
-            className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
+            className={`inline-flex items-center gap-1 text-micro font-semibold px-2 py-0.5 rounded-pill ${
               trend.positive
-                ? 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/30'
-                : 'text-rose-600 bg-rose-50 dark:text-rose-400 dark:bg-rose-950/30'
+                ? 'chip-green'
+                : 'chip-red'
             }`}
           >
             <svg
@@ -85,12 +75,10 @@ export default function MetricCard({
           </span>
         )}
       </div>
-      <p className="metric-label mb-1">{title}</p>
-      <p className="metric-value">{value}</p>
+      <p className="label-mono text-[11px] mb-1">{title}</p>
+      <p className="font-display text-display-product text-brand-near dark:text-white leading-none">{value}</p>
       {description && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
-          {description}
-        </p>
+        <p className="text-caption text-muted-slate mt-1.5">{description}</p>
       )}
     </div>
   )

@@ -1,0 +1,20 @@
+Task 7 — Auth Callback Routing Logic
+======================================
+Date: 2026-06-23
+Branch: demo-mod
+
+Changes made to frontend/app/routes/auth_callback.tsx:
+
+1. Added import for `api` from `../lib/api-client`.
+2. Updated status type to `'saving' | 'fetching' | 'error'` (removed `'done'`).
+3. Early-return for missing token (instead of nested if/else).
+4. After saving JWT to localStorage, decodes the JWT payload via `atob()` to
+   extract `customer_id` from the `sub` claim.
+5. Calls `api.customerProfile(customerId)` to fetch the customer profile.
+6. If the profile has a null/empty `active_scenario`, navigates to `/scenarios`.
+   Otherwise navigates to `/app/chat`.
+7. Wraps the decoding + API call in a try/catch that falls back to navigating
+   to `/app/chat` on error.
+
+This ensures new demo users are routed to the scenario selection page,
+while returning users with an active scenario go straight to chat.

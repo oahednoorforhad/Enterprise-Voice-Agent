@@ -1,18 +1,21 @@
 """Pydantic response models for the Billing tool family."""
 
+from __future__ import annotations
+
 from datetime import datetime
-from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class BillingRecordModel(BaseModel):
     """Billing record returned by get_billing_history."""
 
+    model_config = ConfigDict(coerce_numbers_to_str=False)
+
     id: UUID
     customer_id: UUID
-    amount: Decimal
+    amount: float
     currency: str
     status: str  # paid, pending, overdue, refunded
     description: str | None = None

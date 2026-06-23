@@ -1,0 +1,29 @@
+Task 4 — Admin Endpoint: POST /api/v1/admin/set-real-user
+==========================================================
+Date: 2026-06-23
+
+Change 1 — app/config/settings.py
+  Added `admin_secret_key` field in the OAuth & JWT section (after `jwt_algorithm`):
+    admin_secret_key: str = Field(
+        default="change_me_admin_secret",
+        description="Secret key for admin API endpoints.",
+    )
+
+Change 2 — app/api/admin_router.py (created)
+  New file implementing the admin router mounted at /api/v1/admin.
+  Endpoint: POST /api/v1/admin/set-real-user
+  - Validates X-Admin-Secret header against settings.admin_secret_key (403 on mismatch)
+  - Looks up Customer by email (404 if not found)
+  - Sets customer.is_demo = False and commits
+  - Returns {"email": ..., "is_demo": false}
+
+Change 3 — app/main.py
+  Added import: from app.api.admin_router import admin_router
+  Added registration: app.include_router(admin_router)  (after voice_router)
+
+Change 4 — .env.example
+  Added in the OAuth & JWT section (after JWT_ALGORITHM):
+    # ADMIN_SECRET_KEY: secret key for admin API endpoints (change in production!)
+    ADMIN_SECRET_KEY=change_me_admin_secret
+
+All 4 changes confirmed present on branch demo-mod.

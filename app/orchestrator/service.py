@@ -31,9 +31,9 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from collections.abc import Callable, Coroutine
+from collections.abc import AsyncGenerator, Callable, Coroutine
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypedDict
 
 from langfuse import observe
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -492,3 +492,167 @@ class OrchestratorService:
         tasks = [_run_single(name) for name in tool_names]
         results = await asyncio.gather(*tasks)
         return dict(results)
+
+    # ── Streaming tool execution (emits per-tool events) ───────────────────
+
+    async def _execute_tools_streaming(
+        self,
+        tool_names: list[str],
+        message: str,
+    ) -> AsyncGenerator[tuple[str, ToolResult], None]:
+
+        async def _run_single(tool_name: str) -> tuple[str, ToolResult]:
+            entry = self._tool_registry.get(tool_name)
+            if entry is None:
+                return (tool_name, ToolResult.fail(f"Unknown tool: {tool_name}"))
+
+            async with self._session_factory() as session:
+                kwargs = entry.kwargs_builder(
+                    session=session,
+                    customer_id_str=self._customer_id,
+                    message=message,
+                )
+                try:
+                    result = await asyncio.wait_for(
+                        entry.func(**kwargs),
+                        timeout=_TOOL_TIMEOUT_SECONDS,
+                    )
+                    return (tool_name, ToolResult.ok(result))
+                except TimeoutError:
+                    return (tool_name, ToolResult.fail("Tool timed out"))
+                except DomainException as e:
+                    return (tool_name, ToolResult.fail(str(e)))
+                except Exception as e:
+                    return (tool_name, ToolResult.fail(f"Unexpected error: {e}"))
+
+        coros = [_run_single(name) for name in tool_names]
+        for future in asyncio.as_completed(coros):
+            yield await future
+
+    # ── Public streaming turn loop ─────────────────────────────────────────
+
+    async def process_turn_streaming(
+        self,
+        message: str,
+        conversation_history: str | None = None,
+    ) -> AsyncGenerator["StageEvent", None]:
+        try:
+            yield {"stage": "thinking", "label": "Thinking…"}
+            await asyncio.sleep(0)
+
+            # ── 1. Intent Analysis ───────────────────────────────────────
+            intent_result = await self._analyzer.analyze(message, self._context)
+            yield {
+                "stage": "intent",
+                "label": _INTENT_LABELS.get(intent_result.intent_label, "Analyzing your request…"),
+                "intent": intent_result.intent_label,
+            }
+
+            # ── 2. Tool Selection ────────────────────────────────────────
+            plan = await self._selector.select(intent_result, self._context)
+            is_greeting_or_other = intent_result.intent_label in ("greeting", "other")
+
+            tool_calls_made: list[str] = []
+            tool_results: dict[str, ToolResult] = {}
+            attempted: set[str] = set()
+
+            if not is_greeting_or_other and plan.selected_tools:
+                tools_to_run = plan.selected_tools[: plan.max_tool_calls]
+                yield {"stage": "tools_selected", "tools": tools_to_run}
+
+                # ── 3. Tool Execution (streaming, parallel) ──────────────
+                async for tool_name, result in self._execute_tools_streaming(
+                    tools_to_run, message
+                ):
+                    tool_results[tool_name] = result
+                    tool_calls_made.append(tool_name)
+                    attempted.add(tool_name)
+                    yield {
+                        "stage": "tool_done",
+                        "tool": tool_name,
+                        "ok": result.success,
+                    }
+
+                # ── 4. Evidence Aggregation (interim) ────────────────────
+                evidence_package = await self._aggregator.aggregate(tool_results)
+
+                # ── 5. Sufficiency Check & Replan (at most one pass) ─────
+                if not self._sufficiency_checker.is_sufficient(
+                    evidence_package, intent_result.intent_label
+                ):
+                    replan_tools = self._sufficiency_checker.compute_replan_tools(
+                        plan=plan,
+                        attempted=attempted,
+                        failed=evidence_package.failed_tools,
+                    )
+                    if replan_tools:
+                        yield {"stage": "tools_selected", "tools": replan_tools, "replan": True}
+                        async for tool_name, result in self._execute_tools_streaming(
+                            replan_tools, message
+                        ):
+                            if tool_name not in tool_results:
+                                tool_results[tool_name] = result
+                            if tool_name not in attempted:
+                                tool_calls_made.append(tool_name)
+                            attempted.add(tool_name)
+                            yield {
+                                "stage": "tool_done",
+                                "tool": tool_name,
+                                "ok": result.success,
+                            }
+
+                        evidence_package = await self._aggregator.aggregate(tool_results)
+            else:
+                evidence_package = EvidencePackage(items=[])
+
+            # ── 6. Final Reasoning ───────────────────────────────────────
+            yield {"stage": "reasoning"}
+            reasoning_output = await self._pipeline.reason(
+                evidence_package=evidence_package,
+                customer_context=self._context,
+                intent=intent_result.intent_label,
+                user_message=message,
+                conversation_history=conversation_history,
+            )
+
+            # ── 7. Done ──────────────────────────────────────────────────
+            yield {
+                "stage": "done",
+                "response": reasoning_output.conclusion,
+                "tool_calls_made": tool_calls_made,
+                "evidence": (evidence_package.model_dump() if tool_results else None),
+                "reasoning_trace": reasoning_output.model_dump(),
+            }
+
+        except Exception as e:
+            yield {"stage": "error", "message": str(e)}
+
+
+# ── Stage display labels ────────────────────────────────────────────────────
+
+_INTENT_LABELS: dict[str, str] = {
+    "billing_inquiry": "Analyzing billing inquiry…",
+    "account_query": "Looking up your account…",
+    "ticket_inquiry": "Checking support tickets…",
+    "policy_inquiry": "Searching policy documents…",
+    "usage_inquiry": "Retrieving usage analytics…",
+    "greeting": "Processing greeting…",
+    "other": "Analyzing your request…",
+}
+
+
+# ── Stage event type ────────────────────────────────────────────────────────
+
+class StageEvent(TypedDict, total=False):
+    stage: str
+    label: str
+    intent: str
+    tools: list[str]
+    replan: bool
+    tool: str
+    ok: bool
+    response: str
+    tool_calls_made: list[str]
+    evidence: Any
+    reasoning_trace: Any
+    message: str

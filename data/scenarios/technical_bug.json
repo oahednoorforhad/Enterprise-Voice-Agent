@@ -1,0 +1,119 @@
+{
+  "plan_tier": "enterprise",
+  "subscription": {
+    "plan_name": "Enterprise",
+    "status": "active",
+    "start_date": "2025-06-01T00:00:00Z",
+    "end_date": "2027-06-01T00:00:00Z",
+    "monthly_amount": 799.00
+  },
+  "billing_records": [
+    {
+      "amount": 799.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Enterprise Plan - March 2026",
+      "due_date": "2026-03-01T00:00:00Z",
+      "paid_at": "2026-03-01T00:00:00Z"
+    },
+    {
+      "amount": 799.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Enterprise Plan - April 2026",
+      "due_date": "2026-04-01T00:00:00Z",
+      "paid_at": "2026-04-01T00:00:00Z"
+    },
+    {
+      "amount": 799.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Enterprise Plan - May 2026",
+      "due_date": "2026-05-01T00:00:00Z",
+      "paid_at": "2026-05-02T00:00:00Z"
+    },
+    {
+      "amount": 799.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Enterprise Plan - June 2026",
+      "due_date": "2026-06-01T00:00:00Z",
+      "paid_at": "2026-06-01T00:00:00Z"
+    }
+  ],
+  "support_tickets": [
+    {
+      "title": "CRITICAL: SSO login completely broken after v2.14 API update",
+      "status": "open",
+      "description": "Following the v2.14 API release on June 10, 2026, all SSO login attempts via SAML 2.0 are returning a 401 Unauthorized error. The error log shows: 'Invalid assertion signature - expected RS256, received HS256'. This appears to be a breaking change in the token signing algorithm. Approximately 200 employees cannot access the EVA platform. Business operations are severely impacted. Engineering team has been looped in. Customer is requesting an emergency hotfix or rollback.",
+      "category": "technical",
+      "priority": "critical",
+      "assigned_to": "engineering-team",
+      "resolved_at": null
+    },
+    {
+      "title": "SSO workaround: request temporary password-based access",
+      "status": "open",
+      "description": "While the SSO issue is being resolved, customer has requested temporary username/password credentials for 5 admin users to maintain minimal business continuity. DevOps team is setting up temporary access accounts.",
+      "category": "technical",
+      "priority": "high",
+      "assigned_to": "devops-team",
+      "resolved_at": null
+    }
+  ],
+  "usage_analytics": [
+    {
+      "metric_name": "api_calls",
+      "metric_value": 38400.0,
+      "period_start": "2026-05-01T00:00:00Z",
+      "period_end": "2026-05-31T23:59:59Z"
+    },
+    {
+      "metric_name": "api_calls",
+      "metric_value": 9100.0,
+      "period_start": "2026-06-01T00:00:00Z",
+      "period_end": "2026-06-30T23:59:59Z"
+    },
+    {
+      "metric_name": "error_rate",
+      "metric_value": 45.2,
+      "period_start": "2026-06-10T00:00:00Z",
+      "period_end": "2026-06-23T23:59:59Z"
+    },
+    {
+      "metric_name": "active_sessions",
+      "metric_value": 12.0,
+      "period_start": "2026-06-10T00:00:00Z",
+      "period_end": "2026-06-23T23:59:59Z"
+    },
+    {
+      "metric_name": "failed_auth_attempts",
+      "metric_value": 1847.0,
+      "period_start": "2026-06-10T00:00:00Z",
+      "period_end": "2026-06-23T23:59:59Z"
+    },
+    {
+      "metric_name": "avg_response_time_ms",
+      "metric_value": 320.0,
+      "period_start": "2026-05-01T00:00:00Z",
+      "period_end": "2026-05-31T23:59:59Z"
+    }
+  ],
+  "crm_notes": [
+    {
+      "content": "CTO called directly on June 11 to escalate the SSO outage. This is a P0 incident for them — their entire workforce authenticates through SSO. Engineering lead confirmed the v2.14 release changed the JWT signing algorithm without backward compatibility. A hotfix is being fast-tracked.",
+      "note_type": "escalation",
+      "author": "customer-success"
+    },
+    {
+      "content": "Engineering confirmed root cause: PR #4812 inadvertently changed the default signing algorithm from RS256 to HS256 in the auth middleware. Hotfix branch created. Estimated release: June 14. Customer notified. SLA breach acknowledged — credit to be issued.",
+      "note_type": "internal",
+      "author": "engineering-team"
+    },
+    {
+      "content": "Issued formal incident report and apology to customer. Offering 15-day service credit ($399.50) for SLA breach. Customer appreciated transparency but wants a post-mortem document and assurances about regression testing before future API updates.",
+      "note_type": "resolution",
+      "author": "customer-success"
+    }
+  ]
+}

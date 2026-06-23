@@ -1,308 +1,111 @@
-import { Link } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-import {
-  Users,
-  DollarSign,
-  TicketCheck,
-  Activity,
-  Clock,
-  TrendingUp,
-  ArrowRight,
-  ShieldCheck,
-  Headphones,
-} from 'lucide-react'
-import MetricCard from '../components/MetricCard'
-import LoadingSpinner from '../components/LoadingSpinner'
-import { api, mock, isMockData } from '../lib/api-client'
-import { useAppContext } from './__root'
+import { useEffect } from 'react'
+import { useNavigate } from '@tanstack/react-router'
+import { Sparkles, Zap, Shield, Headphones } from 'lucide-react'
 
-export function OverviewPage() {
-  const { setBackendOffline } = useAppContext()
+export function LandingPage() {
+  const navigate = useNavigate()
 
-  // Fetch real data; fall back to mocks on failure
-  const profileQuery = useQuery({
-    queryKey: ['profile', mock.customerId],
-    queryFn: () => api.customerProfile(mock.customerId),
-  })
-
-  const subscriptionQuery = useQuery({
-    queryKey: ['subscription', mock.customerId],
-    queryFn: () => api.customerSubscription(mock.customerId),
-  })
-
-  const ticketsQuery = useQuery({
-    queryKey: ['tickets', mock.customerId],
-    queryFn: () => api.ticketList(mock.customerId),
-  })
-
-  const billingQuery = useQuery({
-    queryKey: ['billing', mock.customerId],
-    queryFn: () => api.billingHistory(mock.customerId),
-  })
-
-  const usageQuery = useQuery({
-    queryKey: ['usage', mock.customerId],
-    queryFn: () => api.usageAnalytics(mock.customerId),
-  })
-
-  // Detect offline
-  const anyOffline = [
-    profileQuery,
-    subscriptionQuery,
-    ticketsQuery,
-    billingQuery,
-    usageQuery,
-  ].some((q) => isMockData(q.data as any))
-
-  if (anyOffline) setBackendOffline(true)
-
-  const profile = profileQuery.data?.success
-    ? (profileQuery.data.data ?? mock.profile)
-    : mock.profile
-  const subscription = subscriptionQuery.data?.success
-    ? (subscriptionQuery.data.data ?? mock.subscription)
-    : mock.subscription
-  const tickets = ticketsQuery.data?.success
-    ? (ticketsQuery.data.data ?? mock.tickets)
-    : mock.tickets
-  const billing = billingQuery.data?.success
-    ? (billingQuery.data.data ?? mock.billingHistory)
-    : mock.billingHistory
-  const usage = usageQuery.data?.success
-    ? (usageQuery.data.data ?? mock.usageData)
-    : mock.usageData
-
-  const isLoading =
-    profileQuery.isLoading ||
-    subscriptionQuery.isLoading ||
-    ticketsQuery.isLoading ||
-    billingQuery.isLoading ||
-    usageQuery.isLoading
-
-  if (isLoading) {
-    return <LoadingSpinner fullPage message="Loading dashboard data..." />
-  }
-
-  const activeTickets = tickets.filter(
-    (t) => t.status === 'open' || t.status === 'in_progress',
-  ).length
-  const totalRevenue = billing.reduce((sum, b) => sum + b.amount, 0)
-  const mrr = subscription?.amount ?? 2999
+  useEffect(() => {
+    if (localStorage.getItem('jwt')) {
+      navigate({ to: '/app/chat', replace: true })
+    }
+  }, [navigate])
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Welcome back{profile?.name ? `, ${profile.name}` : ''}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Here is what is happening with your account today.
-          </p>
+    <div className="min-h-screen bg-surface-white dark:bg-surface-dark flex flex-col">
+      {/* Minimal header */}
+      <header className="flex items-center gap-3 px-8 py-5 border-b border-hairline dark:border-white/5">
+        <div className="w-8 h-8 rounded-sm bg-brand-near flex items-center justify-center">
+          <Sparkles size={16} className="text-coral-400" />
         </div>
-        <Link
-          to="/chat"
-          className="btn-primary hidden sm:inline-flex"
-        >
-          <Headphones size={16} />
-          Contact Support
-        </Link>
-      </div>
+        <span className="font-display text-heading-feature text-ink dark:text-white">EVA</span>
+        <span className="text-caption text-muted-slate ml-1">Enterprise Voice Agent</span>
+      </header>
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        <MetricCard
-          title="Active Customers"
-          value="1,284"
-          description="Across all tiers"
-          icon={Users}
-          color="brand"
-          trend={{ value: 12, positive: true }}
-        />
-        <MetricCard
-          title="Monthly Recurring Revenue"
-          value={`$${mrr.toLocaleString()}`}
-          description="Current MRR"
-          icon={DollarSign}
-          color="emerald"
-          trend={{ value: 8.3, positive: true }}
-        />
-        <MetricCard
-          title="Open Tickets"
-          value={activeTickets}
-          description={`${tickets.length} total tickets`}
-          icon={TicketCheck}
-          color={activeTickets > 0 ? 'amber' : 'emerald'}
-          trend={
-            activeTickets > 0
-              ? { value: activeTickets, positive: false }
-              : undefined
-          }
-        />
-        <MetricCard
-          title="Avg Response Time"
-          value="2.4m"
-          description="Last 7 days"
-          icon={Clock}
-          color="violet"
-          trend={{ value: 15, positive: true }}
-        />
-        <MetricCard
-          title="API Calls Today"
-          value={usage?.total?.toLocaleString() ?? '8,450'}
-          description="Usage analytics"
-          icon={Activity}
-          color="rose"
-          trend={{ value: 5.7, positive: true }}
-        />
-      </div>
+      {/* Hero */}
+      <main className="flex-1 flex flex-col items-center justify-center px-8 text-center">
+        <div className="max-w-2xl animate-stagger-1">
+          <h1 className="heading-hero mb-6">
+            Your Enterprise AI<br />
+            <span className="text-brand-coral">Support Agent</span>
+          </h1>
+          <p className="text-body-large text-muted-slate mb-12 max-w-xl mx-auto animate-stagger-2">
+            EVA handles billing inquiries, technical support, and account management
+            through natural voice and chat — 24/7, at enterprise scale.
+          </p>
 
-      {/* Quick Actions & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Quick Actions */}
-        <div className="card">
-          <div className="card-header">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-              Quick Actions
-            </h2>
-          </div>
-          <div className="card-body space-y-2">
-            {[
-              { label: 'View Customer Dashboard', href: '/dashboard', icon: Users, desc: 'Customer profile, subscription & tickets' },
-              { label: 'Search Knowledge Base', href: '/knowledge', icon: ShieldCheck, desc: 'Documentation & policies' },
-              { label: 'Explore Analytics', href: '/analytics', icon: TrendingUp, desc: 'Usage metrics & charts' },
-              { label: 'Start a Chat Session', href: '/chat', icon: Headphones, desc: 'AI-powered customer support' },
-            ].map((action) => (
-              <Link
-                key={action.href}
-                to={action.href}
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
-              >
-                <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 group-hover:bg-brand-50 group-hover:text-brand-600 dark:group-hover:bg-brand-950/30 dark:group-hover:text-brand-400 transition-colors">
-                  <action.icon size={18} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {action.label}
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">
-                    {action.desc}
-                  </p>
-                </div>
-                <ArrowRight
-                  size={16}
-                  className="text-gray-300 dark:text-gray-600 group-hover:text-brand-500 transition-colors"
-                />
-              </Link>
+          <a
+            href="http://localhost:8000/api/v1/auth/login/google"
+            className="btn-pill-primary px-8 py-4 text-body font-medium inline-flex items-center gap-3 animate-stagger-3"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Sign in with Google
+          </a>
+        </div>
+
+        {/* Feature highlights */}
+        <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-10 max-w-3xl w-full text-left animate-stagger-4">
+          {[
+            { icon: Headphones, title: 'Voice & Chat', desc: 'Natural language support via voice calls or chat messages' },
+            { icon: Zap, title: 'Instant Answers', desc: 'AI resolves billing, tickets, and account queries in seconds' },
+            { icon: Shield, title: 'Enterprise Ready', desc: 'Secure, audit-logged, and deployed on your infrastructure' },
+          ].map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="flex gap-4">
+              <div className="w-10 h-10 rounded-sm bg-surface-stone dark:bg-surface-dark-elevated flex items-center justify-center flex-shrink-0">
+                <Icon size={20} className="text-brand-coral" />
+              </div>
+              <div>
+                <h3 className="font-display text-heading-feature text-ink dark:text-white mb-1">{title}</h3>
+                <p className="text-caption text-muted-slate">{desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Trust strip */}
+        <div className="mt-24 mb-16 w-full max-w-3xl animate-stagger-5">
+          <p className="label-mono text-center mb-8">Trusted by enterprise teams</p>
+          <div className="trust-strip">
+            {['ABC', 'Efghi', 'Jklmno', 'Pqrst'].map((name) => (
+              <span key={name} className="font-display text-heading-feature text-muted-slate/30 dark:text-gray-600 select-none">
+                {name}
+              </span>
             ))}
           </div>
         </div>
+      </main>
 
-        {/* Recent Tickets */}
-        <div className="card">
-          <div className="card-header flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-              Recent Tickets
-            </h2>
-            <Link
-              to="/dashboard"
-              className="text-xs text-brand-600 dark:text-brand-400 hover:underline"
-            >
-              View all
-            </Link>
+      {/* Footer */}
+      <footer className="border-t border-hairline dark:border-white/5 px-8 py-6">
+        <div className="max-w-3xl mx-auto flex flex-col items-center gap-3 text-center">
+          {/* Brand */}
+          <div className="flex items-center gap-2">
+            <Sparkles size={14} className="text-coral-400" />
+            <span className="font-display font-semibold text-heading-feature text-ink dark:text-white">
+              OahedAI
+            </span>
           </div>
-          <div className="card-body">
-            {tickets.length === 0 ? (
-              <div className="text-center py-8 text-sm text-gray-400 dark:text-gray-500">
-                No tickets found.
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {tickets.slice(0, 4).map((ticket) => (
-                  <div
-                    key={ticket.id}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                        {ticket.subject}
-                      </p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                        {new Date(ticket.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <span
-                      className={`badge ml-3 ${
-                        ticket.status === 'open'
-                          ? 'badge-warning'
-                          : ticket.status === 'in_progress'
-                            ? 'badge-info'
-                            : 'badge-success'
-                      }`}
-                    >
-                      {ticket.status.replace('_', ' ')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* Plan Summary */}
-      {subscription && (
-        <div className="card">
-          <div className="card-header">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-              Subscription Overview
-            </h2>
-          </div>
-          <div className="card-body">
-            <div className="flex flex-wrap items-center gap-6">
-              <div>
-                <p className="metric-label">Plan</p>
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  {subscription.plan}
-                </p>
-              </div>
-              <div>
-                <p className="metric-label">Status</p>
-                <span
-                  className={`badge ${
-                    subscription.status === 'active'
-                      ? 'badge-success'
-                      : 'badge-warning'
-                  }`}
-                >
-                  {subscription.status}
-                </span>
-              </div>
-              <div>
-                <p className="metric-label">Amount</p>
-                <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                  ${subscription.amount.toLocaleString()}/{subscription.currency}
-                </p>
-              </div>
-              <div>
-                <p className="metric-label">Auto Renew</p>
-                <span
-                  className={`badge ${subscription.auto_renew ? 'badge-success' : 'badge-warning'}`}
-                >
-                  {subscription.auto_renew ? 'Enabled' : 'Disabled'}
-                </span>
-              </div>
-              <div>
-                <p className="metric-label">Start Date</p>
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {new Date(subscription.start_date).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          </div>
+          {/* Tagline */}
+          <p className="label-mono text-muted-slate dark:text-gray-500">
+            Soon to be trusted by many enterprise companies
+          </p>
+
+          {/* Divider */}
+          <div className="w-16 h-px bg-hairline dark:bg-white/5 my-1" />
+
+          {/* Copyright */}
+          <p className="text-caption text-muted-slate/60 dark:text-gray-600">
+            © 2026 OahedAI. All rights reserved. &nbsp;·&nbsp; Developed by{' '}
+            <span className="font-medium text-muted-slate dark:text-gray-500">OahedAI</span>
+          </p>
         </div>
-      )}
+      </footer>
     </div>
   )
 }

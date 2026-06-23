@@ -1,39 +1,56 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { api } from '../lib/api-client'
 
 export function AuthCallbackPage() {
   const navigate = useNavigate()
-  const [status, setStatus] = useState<'saving' | 'done' | 'error'>('saving')
+  const [status, setStatus] = useState<'saving' | 'fetching' | 'error'>('saving')
 
   useEffect(() => {
-    // Read token from URL search params
     const params = new URLSearchParams(window.location.search)
     const token = params.get('token')
 
-    if (token) {
-      localStorage.setItem('jwt', token)
-      setStatus('done')
-      navigate({ to: '/', replace: true })
-    } else {
+    if (!token) {
       setStatus('error')
+      return
+    }
+
+    try {
+      localStorage.setItem('jwt', token)
+
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      const customerId = payload.sub
+
+      setStatus('fetching')
+
+      api.customerProfile(customerId).then((result) => {
+        const profile = result.data
+        if (profile && !profile.active_scenario) {
+          navigate({ to: '/scenarios', replace: true })
+        } else {
+          navigate({ to: '/app/chat', replace: true })
+        }
+      })
+    } catch {
+      navigate({ to: '/app/chat', replace: true })
     }
   }, [navigate])
 
   if (status === 'error') {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 max-w-sm text-center">
-          <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
+      <div className="flex items-center justify-center min-h-screen bg-surface-white dark:bg-surface-dark">
+        <div className="card-flat p-8 max-w-sm text-center">
+          <h1 className="font-display text-heading-feature text-ink dark:text-white mb-2">
             Authentication Failed
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          <p className="text-caption text-muted-slate mb-4">
             No token was received from the authentication provider.
           </p>
           <a
-            href="/login"
-            className="text-brand-600 dark:text-brand-400 text-sm font-medium hover:underline"
+            href="/"
+            className="text-body-small font-medium text-brand-blue hover:underline"
           >
-            Back to login
+            Back to home
           </a>
         </div>
       </div>
@@ -41,8 +58,8 @@ export function AuthCallbackPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="animate-pulse text-gray-400 dark:text-gray-500 text-sm">
+    <div className="flex items-center justify-center min-h-screen bg-surface-white dark:bg-surface-dark">
+      <div className="animate-pulse text-caption text-muted-slate">
         Completing sign-in…
       </div>
     </div>

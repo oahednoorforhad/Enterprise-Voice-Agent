@@ -1,0 +1,86 @@
+{
+  "plan_tier": "starter",
+  "subscription": {
+    "plan_name": "Starter",
+    "status": "active",
+    "start_date": "2026-06-09T00:00:00Z",
+    "end_date": "2027-06-09T00:00:00Z",
+    "monthly_amount": 99.00
+  },
+  "billing_records": [
+    {
+      "amount": 99.00,
+      "currency": "USD",
+      "status": "paid",
+      "description": "Starter Plan - First Invoice (June 9 - July 8, 2026)",
+      "due_date": "2026-06-09T00:00:00Z",
+      "paid_at": "2026-06-09T00:00:00Z"
+    }
+  ],
+  "support_tickets": [
+    {
+      "title": "Onboarding help: setting up first voice agent workflow",
+      "status": "resolved",
+      "description": "New customer reached out within 2 hours of signing up, excited to get started! They had questions about: (1) how to create their first voice agent flow, (2) how to connect their phone number via Twilio, and (3) best practices for writing opening prompts. Support walked them through the Quick Start guide and stayed on a 45-minute screenshare call. Customer successfully launched their first test agent by end of the session. Very positive interaction.",
+      "category": "onboarding",
+      "priority": "low",
+      "assigned_to": "onboarding-team",
+      "resolved_at": "2026-06-09T16:30:00Z"
+    }
+  ],
+  "usage_analytics": [
+    {
+      "metric_name": "api_calls",
+      "metric_value": 450.0,
+      "period_start": "2026-06-09T00:00:00Z",
+      "period_end": "2026-06-15T23:59:59Z"
+    },
+    {
+      "metric_name": "api_calls",
+      "metric_value": 890.0,
+      "period_start": "2026-06-16T00:00:00Z",
+      "period_end": "2026-06-22T23:59:59Z"
+    },
+    {
+      "metric_name": "active_users",
+      "metric_value": 3.0,
+      "period_start": "2026-06-09T00:00:00Z",
+      "period_end": "2026-06-22T23:59:59Z"
+    },
+    {
+      "metric_name": "avg_response_time_ms",
+      "metric_value": 210.0,
+      "period_start": "2026-06-09T00:00:00Z",
+      "period_end": "2026-06-22T23:59:59Z"
+    },
+    {
+      "metric_name": "voice_minutes_used",
+      "metric_value": 34.5,
+      "period_start": "2026-06-09T00:00:00Z",
+      "period_end": "2026-06-22T23:59:59Z"
+    },
+    {
+      "metric_name": "flows_created",
+      "metric_value": 2.0,
+      "period_start": "2026-06-09T00:00:00Z",
+      "period_end": "2026-06-22T23:59:59Z"
+    }
+  ],
+  "crm_notes": [
+    {
+      "content": "Welcome to EVA! 🎉 Customer signed up on June 9, 2026 via the website. They're a small e-commerce business (8 employees) looking to automate their customer service calls. Signed up for Starter plan after the free 14-day trial. Very enthusiastic and engaged during onboarding — already had a list of questions ready. Great energy!",
+      "note_type": "welcome",
+      "author": "customer-success"
+    },
+    {
+      "content": "Week 1 check-in completed on June 16. Customer has created 2 voice agent flows and run 34 test conversations. They're already seeing value — said it saved them about 2 hours of manual call handling in the first week. Usage growing week-over-week (450 → 890 api_calls). They're interested in learning about Twilio integration for live calls.",
+      "note_type": "check-in",
+      "author": "onboarding-team"
+    },
+    {
+      "content": "Identified as a strong expansion candidate. Growth trajectory is promising for a brand-new account. Schedule a 30-day review call for July 9 to discuss how EVA is performing and introduce the Professional plan features (higher limits, advanced analytics, webhook integrations) that they'll likely need as they scale.",
+      "note_type": "opportunity",
+      "author": "customer-success"
+    }
+  ]
+}
