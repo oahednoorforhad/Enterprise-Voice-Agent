@@ -78,6 +78,10 @@ class Settings(BaseSettings):
         default="HS256",
         description="Signing algorithm for JWT tokens (e.g. HS256, RS256).",
     )
+    admin_secret_key: str = Field(
+        default="change_me_admin_secret",
+        description="Secret key for admin API endpoints.",
+    )
 
     # Reasoning
     max_tool_calls_per_turn: int = 6
