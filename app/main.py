@@ -9,6 +9,7 @@ import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 import structlog
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,6 +37,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     settings = get_settings()
     app.state.settings = settings
+
+    # ── Sentry Error Monitoring ─────────────────────────────────────────
+    if settings.sentry_dsn:
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            environment=settings.environment,
+            traces_sample_rate=0.1,
+        )
 
     # ── Langfuse Observability ──────────────────────────────────────────
     if settings.langfuse_public_key and settings.langfuse_secret_key:

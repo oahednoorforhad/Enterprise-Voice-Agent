@@ -60,6 +60,9 @@ class Settings(BaseSettings):
 
 
 
+    # Sentry error monitoring
+    sentry_dsn: str = ""
+
     # Observability
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
