@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { Send, Sparkles, AlertCircle } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
-import ChatMessage, { type Message } from '../components/ChatMessage'
-import { api, mock } from '../lib/api-client'
-import { useAppContext } from './__root'
+import ChatMessage, { type Message } from '../../components/ChatMessage'
+import { api, mock } from '../../lib/api-client'
+import { useAppContext } from '../__root'
 
-export function ChatPage() {
+export function AppChatPage() {
   const { setBackendOffline } = useAppContext()
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Message[]>([
@@ -93,7 +93,7 @@ export function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-7rem)] animate-fade-in">
+    <div className="flex flex-col h-full p-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 rounded-lg bg-brand-50 dark:bg-brand-950/30">

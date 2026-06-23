@@ -1,67 +1,23 @@
 import { createRouter, createRoute, redirect } from '@tanstack/react-router'
 import { Route as rootRoute } from './routes/__root'
-import { OverviewPage } from './routes/index'
-import { ChatPage } from './routes/chat'
-import { DashboardPage } from './routes/dashboard'
-import { KnowledgePage } from './routes/knowledge'
-import { AnalyticsPage } from './routes/analytics'
-import { VoicePage } from './routes/voice'
-import { LoginPage } from './routes/login'
+import { LandingPage } from './routes/index'
+import { AppShell } from './routes/app'
+import { AppChatPage } from './routes/app/chat'
+import { AppVoicePage } from './routes/app/voice'
+import { ScenariosPage } from './routes/scenarios'
 import { AuthCallbackPage } from './routes/auth_callback'
 
-/** Check whether a valid JWT exists in localStorage. */
 function requireAuth() {
   if (!localStorage.getItem('jwt')) {
-    throw redirect({ to: '/login' })
+    throw redirect({ to: '/' })
   }
 }
 
+// Public routes
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  beforeLoad: requireAuth,
-  component: OverviewPage,
-})
-
-const chatRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/chat',
-  beforeLoad: requireAuth,
-  component: ChatPage,
-})
-
-const dashboardRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/dashboard',
-  beforeLoad: requireAuth,
-  component: DashboardPage,
-})
-
-const knowledgeRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/knowledge',
-  beforeLoad: requireAuth,
-  component: KnowledgePage,
-})
-
-const analyticsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/analytics',
-  beforeLoad: requireAuth,
-  component: AnalyticsPage,
-})
-
-const voiceRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/voice',
-  beforeLoad: requireAuth,
-  component: VoicePage,
-})
-
-const loginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/login',
-  component: LoginPage,
+  component: LandingPage,
 })
 
 const authCallbackRoute = createRoute({
@@ -70,15 +26,40 @@ const authCallbackRoute = createRoute({
   component: AuthCallbackPage,
 })
 
+// Auth-required: scenarios
+const scenariosRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/scenarios',
+  beforeLoad: requireAuth,
+  component: ScenariosPage,
+})
+
+// Auth-required: app shell (parent)
+const appRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app',
+  beforeLoad: requireAuth,
+  component: AppShell,
+})
+
+// App child routes
+const appChatRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/chat',
+  component: AppChatPage,
+})
+
+const appVoiceRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/voice',
+  component: AppVoicePage,
+})
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  chatRoute,
-  dashboardRoute,
-  knowledgeRoute,
-  analyticsRoute,
-  voiceRoute,
-  loginRoute,
   authCallbackRoute,
+  scenariosRoute,
+  appRoute.addChildren([appChatRoute, appVoiceRoute]),
 ])
 
 const router = createRouter({ routeTree })

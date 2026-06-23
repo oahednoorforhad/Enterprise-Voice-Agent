@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import {
-  LayoutDashboard,
   MessageSquare,
-  BarChart3,
-  BookOpen,
-  Users,
   Mic,
   ChevronLeft,
   ChevronRight,
@@ -23,12 +19,8 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { href: '/', label: 'Overview', icon: LayoutDashboard },
-  { href: '/chat', label: 'Chat', icon: MessageSquare },
-  { href: '/voice', label: 'Voice', icon: Mic },
-  { href: '/dashboard', label: 'Dashboard', icon: Users },
-  { href: '/knowledge', label: 'Knowledge', icon: BookOpen },
-  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/app/chat', label: 'Chat', icon: MessageSquare },
+  { href: '/app/voice', label: 'Voice', icon: Mic },
 ]
 
 export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
@@ -39,7 +31,8 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
 
   const handleLogout = () => {
     localStorage.removeItem('jwt')
-    navigate({ to: '/login', replace: true })
+    localStorage.removeItem('active_scenario_name')
+    navigate({ to: '/', replace: true })
   }
 
   // Close mobile sidebar on route change

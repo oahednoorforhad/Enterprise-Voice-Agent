@@ -49,6 +49,7 @@ function RootLayout() {
 
   const [backendOffline, setBackendOffline] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const isLoggedIn = typeof localStorage !== 'undefined' && !!localStorage.getItem('jwt')
 
   // Persist dark mode
   useEffect(() => {
@@ -75,13 +76,15 @@ function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <AppCtx.Provider value={{ backendOffline, setBackendOffline }}>
         <div className="flex min-h-screen">
-          <Sidebar isDark={isDark} onToggleDark={handleToggleDark} />
+          {isLoggedIn && <Sidebar isDark={isDark} onToggleDark={handleToggleDark} />}
           <main
-            className={`flex-1 transition-all duration-300 pt-16 md:pt-0 ${
-              sidebarCollapsed ? 'md:ml-[68px]' : 'md:ml-[var(--sidebar-width)]'
+            className={`flex-1 transition-all duration-300 ${
+              isLoggedIn
+                ? (sidebarCollapsed ? 'md:ml-[68px]' : 'md:ml-[var(--sidebar-width)]')
+                : ''
             }`}
           >
-            {backendOffline && (
+            {isLoggedIn && backendOffline && (
               <div className="offline-banner mx-4 mt-4 mb-2 px-4 py-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
                 <svg
                   width="16"
@@ -104,9 +107,7 @@ function RootLayout() {
                 Backend offline — showing sample data
               </div>
             )}
-            <div className="p-6">
-              <Outlet />
-            </div>
+            <Outlet />
           </main>
         </div>
       </AppCtx.Provider>

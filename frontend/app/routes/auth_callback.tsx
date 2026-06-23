@@ -13,7 +13,7 @@ export function AuthCallbackPage() {
     if (token) {
       localStorage.setItem('jwt', token)
       setStatus('done')
-      navigate({ to: '/', replace: true })
+      navigate({ to: '/app/chat', replace: true })
     } else {
       setStatus('error')
     }
@@ -30,10 +30,10 @@ export function AuthCallbackPage() {
             No token was received from the authentication provider.
           </p>
           <a
-            href="/login"
+            href="/"
             className="text-brand-600 dark:text-brand-400 text-sm font-medium hover:underline"
           >
-            Back to login
+            Back to home
           </a>
         </div>
       </div>
