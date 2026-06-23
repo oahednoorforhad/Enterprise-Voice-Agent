@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.admin_router import admin_router
 from app.api.auth_router import auth_router
 from app.api.chat_router import chat_router
+from app.api.demo_router import demo_router
 from app.api.tools_router import tools_router
 from app.api.voice_router import voice_router
 from app.config import get_settings
@@ -170,6 +171,7 @@ def create_app() -> FastAPI:
     app.include_router(chat_router)
     app.include_router(voice_router)
     app.include_router(admin_router)
+    app.include_router(demo_router)
 
     return app
 
