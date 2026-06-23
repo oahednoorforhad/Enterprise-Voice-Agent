@@ -33,6 +33,7 @@ async def get_customer_profile(
         created_at=customer.created_at,
         tier=customer.plan_tier,
         status="active" if customer.is_active else "inactive",
+        active_scenario=customer.active_scenario,
     )
 
 

@@ -35,6 +35,7 @@ export interface CustomerProfile {
   created_at: string
   tier: string
   status: string
+  active_scenario: string | null
   [key: string]: unknown
 }
 
@@ -310,12 +311,24 @@ export const api = {
 
   knowledgePolicies: (query: string): Promise<ToolResult<KnowledgeResult[]>> =>
     post<KnowledgeResult[]>('/api/v1/tools/knowledge/policies', { query }),
+
+  applyScenario: (scenarioId: string): Promise<ToolResult<{ scenario_id: string; active_scenario: string; customer_id: string }>> =>
+    post('/api/v1/demo/apply-scenario', { scenario_id: scenarioId }),
 }
 
 // ---- Mock data helpers -----------------------------------------------------
 
 export const mock = {
-  customerId: MOCK_CUSTOMER_ID,
+  get customerId() {
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('jwt') : null;
+    if (!token) return MOCK_CUSTOMER_ID;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub || MOCK_CUSTOMER_ID;
+    } catch (e) {
+      return MOCK_CUSTOMER_ID;
+    }
+  },
   profile: mockProfile,
   subscription: mockSubscription,
   tickets: mockTickets,
@@ -325,8 +338,10 @@ export const mock = {
   docsResults: mockDocsResults,
   policyResults: mockPolicyResults,
   chatResponse: mockChatResponse,
+  applyScenarioResponse: { scenario_id: 'billing_dispute', active_scenario: 'billing_dispute', customer_id: MOCK_CUSTOMER_ID },
 }
 
 export function isMockData<T>(result: ToolResult<T> | undefined): boolean {
   return result ? !result.success && result.error !== null && result.error.includes('Network error') : false
 }
+
