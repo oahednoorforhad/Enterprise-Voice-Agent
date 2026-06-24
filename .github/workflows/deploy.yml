@@ -53,16 +53,27 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Deploy to Droplet via SSH
+      - name: Setup SSH key
+        shell: bash
+        env:
+          SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+          SSH_KEY_B64: ${{ secrets.DROPLET_SSH_KEY_B64 }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          if [ -n "$SSH_KEY_B64" ]; then
+            echo "$SSH_KEY_B64" | base64 -d > ~/.ssh/id_ed25519
+          else
+            echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          fi
+          chmod 600 ~/.ssh/id_ed25519
+          echo "Key first line: $(head -1 ~/.ssh/id_ed25519)"
+
+      - name: Deploy to Droplet
         shell: bash
         env:
           DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
-          SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
         run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H "$DROPLET_HOST" >> ~/.ssh/known_hosts 2>/dev/null
-          ssh -i ~/.ssh/id_ed25519 root@"$DROPLET_HOST" "
-            cd /opt/eva && bash scripts/deploy.sh
-          "
+          ssh -o StrictHostKeyChecking=accept-new \
+              -i ~/.ssh/id_ed25519 \
+              root@"$DROPLET_HOST" "cd /opt/eva && bash scripts/deploy.sh"
