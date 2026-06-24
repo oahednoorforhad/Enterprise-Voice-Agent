@@ -73,6 +73,7 @@ class Settings(BaseSettings):
     google_client_id: str = ""
     google_client_secret: str = ""
     google_redirect_uri: str = "http://localhost:8000/api/v1/auth/callback/google"
+    frontend_url: str = "http://localhost:3000"
     jwt_secret: str = Field(
         default="change_me_in_production",
         description="Secret key used to sign JWT tokens.",

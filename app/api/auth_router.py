@@ -120,6 +120,6 @@ async def callback_google(
 
     # Redirect to the frontend with the JWT
     frontend_callback_url = (
-        f"http://localhost:3000/auth/callback?token={jwt_token}"
+        f"{settings.frontend_url}/auth/callback?token={jwt_token}"
     )
     return RedirectResponse(url=frontend_callback_url)
