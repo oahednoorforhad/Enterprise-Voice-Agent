@@ -143,9 +143,7 @@ function CallSummaryPanel({ sessionId }: { sessionId: string }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['voice-summary', sessionId],
     queryFn: async () => {
-      const base = typeof process !== 'undefined' && process.env?.VITE_API_URL
-        ? process.env.VITE_API_URL
-        : 'http://localhost:8000'
+      const base = import.meta.env.VITE_API_URL || 'http://localhost:8000'
       const res = await fetch(`${base}/api/v1/voice/summary/${sessionId}`)
       if (!res.ok) throw new Error('Summary not ready')
       return res.json()

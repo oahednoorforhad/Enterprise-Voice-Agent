@@ -57,9 +57,7 @@ export interface UseVoiceSessionReturn {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const API_BASE = typeof process !== 'undefined' && process.env?.VITE_API_URL
-  ? process.env.VITE_API_URL
-  : 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 const WS_BASE = API_BASE.replace(/^http/, 'ws')
 

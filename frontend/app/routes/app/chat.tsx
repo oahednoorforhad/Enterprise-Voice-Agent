@@ -5,10 +5,7 @@ import ThinkingPanel, { type ThinkingStep } from '../../components/ThinkingPanel
 import { mock } from '../../lib/api-client'
 import { useAppContext } from '../__root'
 
-const API_BASE =
-  typeof process !== 'undefined' && process.env?.VITE_API_URL
-    ? process.env.VITE_API_URL
-    : 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 async function applyEvent(
   event: Record<string, unknown>,

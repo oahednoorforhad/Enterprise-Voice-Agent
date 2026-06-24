@@ -2,10 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Sparkles, Zap, Shield, Headphones } from 'lucide-react'
 
-const API_BASE =
-  typeof process !== 'undefined' && process.env?.VITE_API_URL
-    ? process.env.VITE_API_URL
-    : 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export function LandingPage() {
   const navigate = useNavigate()

@@ -13,9 +13,7 @@ export default defineConfig({
   },
   plugins: [react(), tsconfigPaths()],
   define: {
-    'process.env.VITE_API_URL': JSON.stringify(
-      process.env.VITE_API_URL || 'http://localhost:8000',
-    ),
+    // VITE_SENTRY_DSN is accessed via process.env by @sentry/vite-plugin
     'process.env.VITE_SENTRY_DSN': JSON.stringify(
       process.env.VITE_SENTRY_DSN || '',
     ),
