@@ -9,13 +9,11 @@ RUN npm ci --silent
 COPY . .
 
 # VITE_API_URL is injected at build time — Vite bakes it into the JS bundle
+# NOTE: passed inline in RUN to force Docker cache invalidation when the ARG changes
 ARG VITE_API_URL=http://localhost:8000
-ENV VITE_API_URL=$VITE_API_URL
-
 ARG VITE_SENTRY_DSN=""
-ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
 
-RUN npm run build
+RUN VITE_API_URL=$VITE_API_URL VITE_SENTRY_DSN=$VITE_SENTRY_DSN npm run build
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
