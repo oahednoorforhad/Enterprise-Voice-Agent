@@ -40,14 +40,14 @@ export function AppShell() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex flex-col md:flex-row h-dvh overflow-hidden">
       {/* Left panel — main content rendered by child route */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <Outlet />
       </div>
 
-      {/* Right panel — always-visible account data */}
-      <div className="w-[380px] flex-shrink-0 border-l border-hairline dark:border-white/5 overflow-y-auto bg-surface-stone dark:bg-surface-dark-elevated">
+      {/* Right panel — account data sidebar (hidden on mobile) */}
+      <div className="hidden md:block w-[380px] flex-shrink-0 border-l border-hairline dark:border-white/5 overflow-y-auto bg-surface-stone dark:bg-surface-dark-elevated">
         <AccountSummary
           profile={profileQuery.data?.data ?? null}
           subscription={subscriptionQuery.data?.data ?? null}
