@@ -53,7 +53,7 @@ async def login_google(request: Request):
     settings = get_settings()
     return await oauth.google.authorize_redirect(
         request,
-        settings.google_redirect_uri,
+        settings.resolved_google_redirect_uri,
     )
 
 

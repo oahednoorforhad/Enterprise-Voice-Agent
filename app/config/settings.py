@@ -72,8 +72,20 @@ class Settings(BaseSettings):
     # OAuth & JWT
     google_client_id: str = ""
     google_client_secret: str = ""
-    google_redirect_uri: str = "http://localhost:8000/api/v1/auth/callback/google"
+    google_redirect_uri: str = ""
     frontend_url: str = "http://localhost:3000"
+
+    @property
+    def resolved_google_redirect_uri(self) -> str:
+        """Return the effective Google OAuth redirect URI.
+
+        If ``google_redirect_uri`` is explicitly set it is used as-is;
+        otherwise it is derived from ``frontend_url``.
+        This matches the production architecture where Nginx proxies
+        ``/api/`` to the backend on the same domain as the frontend.
+        """
+        return self.google_redirect_uri or f"{self.frontend_url}/api/v1/auth/callback/google"
+
     jwt_secret: str = Field(
         default="change_me_in_production",
         description="Secret key used to sign JWT tokens.",

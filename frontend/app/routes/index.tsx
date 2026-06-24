@@ -2,6 +2,11 @@ import { useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Sparkles, Zap, Shield, Headphones } from 'lucide-react'
 
+const API_BASE =
+  typeof process !== 'undefined' && process.env?.VITE_API_URL
+    ? process.env.VITE_API_URL
+    : 'http://localhost:8000'
+
 export function LandingPage() {
   const navigate = useNavigate()
 
@@ -35,7 +40,7 @@ export function LandingPage() {
           </p>
 
           <a
-            href="http://localhost:8000/api/v1/auth/login/google"
+            href={`${API_BASE}/api/v1/auth/login/google`}
             className="btn-pill-primary px-8 py-4 text-body font-medium inline-flex items-center gap-3 animate-stagger-3"
           >
             <svg width="20" height="20" viewBox="0 0 24 24">
