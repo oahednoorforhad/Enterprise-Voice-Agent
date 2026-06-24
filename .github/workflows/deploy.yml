@@ -54,11 +54,15 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Deploy to Droplet via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.DROPLET_HOST }}
-          username: root
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          script: |
-            cd /opt/eva
-            bash scripts/deploy.sh
+        shell: bash
+        env:
+          DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+          SSH_KEY: ${{ secrets.DROPLET_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$DROPLET_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          ssh -i ~/.ssh/id_ed25519 root@"$DROPLET_HOST" "
+            cd /opt/eva && bash scripts/deploy.sh
+          "
