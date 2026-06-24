@@ -44,3 +44,5 @@ frontend/node_modules/
 .puku/puku-embeddings.db-shm
 .puku/puku-embeddings.db-wal
 .puku/puku-embeddings.db-wal
+.puku/puku-embeddings.db-shm
+.puku/puku-embeddings.db-wal
