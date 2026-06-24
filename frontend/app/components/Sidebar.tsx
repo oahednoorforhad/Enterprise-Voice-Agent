@@ -130,7 +130,7 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
 
       {/* Mobile hamburger */}
       <button
-        className="fixed top-4 left-4 z-50 md:hidden p-2 rounded-sm bg-surface-white dark:bg-surface-dark-elevated shadow-sm border border-hairline dark:border-white/10"
+        className="fixed top-4 left-4 z-50 md:hidden p-3 min-w-[44px] min-h-[44px] rounded-sm bg-surface-white dark:bg-surface-dark-elevated shadow-sm border border-hairline dark:border-white/10"
         onClick={() => setMobileOpen(true)}
         aria-label="Open menu"
       >
@@ -151,6 +151,7 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
         className={`md:hidden fixed inset-y-0 left-0 z-50 w-[280px] bg-surface-white dark:bg-surface-dark-elevated border-r border-hairline dark:border-white/5 transform transition-transform duration-300 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         <div className="flex justify-end p-3">
           <button

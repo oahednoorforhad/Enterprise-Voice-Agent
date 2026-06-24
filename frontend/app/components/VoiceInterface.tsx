@@ -220,7 +220,7 @@ export default function VoiceInterface() {
   }, [startSession])
 
   return (
-    <div className="flex flex-col items-center gap-6 py-8 px-4">
+    <div className="flex flex-col items-center gap-6 py-4 sm:py-8 px-4">
       {/* Header */}
       <div className="text-center">
         <h2 className="font-display text-heading-card text-ink dark:text-white">

@@ -77,7 +77,7 @@ function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppCtx.Provider value={{ backendOffline, setBackendOffline }}>
-        <div className="flex min-h-screen bg-surface-white dark:bg-surface-dark">
+        <div className="flex min-h-dvh bg-surface-white dark:bg-surface-dark">
           {isLoggedIn && !hideSidebar && <Sidebar isDark={isDark} onToggleDark={handleToggleDark} />}
           <main
             className={`flex-1 transition-all duration-300 ${

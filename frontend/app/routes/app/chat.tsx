@@ -188,7 +188,7 @@ export function AppChatPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin space-y-4 pr-2 mb-4">
+      <div className="flex-1 overflow-y-auto scrollbar-thin space-y-4 pr-3 sm:pr-2 mb-4">
         {messages.map((msg) => (
           <ChatMessage key={msg.id} message={msg} />
         ))}

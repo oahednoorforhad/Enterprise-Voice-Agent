@@ -14,9 +14,9 @@ export function LandingPage() {
   }, [navigate])
 
   return (
-    <div className="min-h-screen bg-surface-white dark:bg-surface-dark flex flex-col">
+    <div className="min-h-dvh bg-surface-white dark:bg-surface-dark flex flex-col">
       {/* Minimal header */}
-      <header className="flex items-center gap-3 px-8 py-5 border-b border-hairline dark:border-white/5">
+      <header className="flex items-center gap-3 px-6 sm:px-8 py-5 border-b border-hairline dark:border-white/5">
         <div className="w-8 h-8 rounded-sm bg-brand-near flex items-center justify-center">
           <Sparkles size={16} className="text-coral-400" />
         </div>
@@ -25,7 +25,7 @@ export function LandingPage() {
       </header>
 
       {/* Hero */}
-      <main className="flex-1 flex flex-col items-center justify-center px-8 text-center">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 sm:px-8 text-center">
         <div className="max-w-2xl animate-stagger-1">
           <h1 className="heading-hero mb-6">
             Your Enterprise AI<br />
