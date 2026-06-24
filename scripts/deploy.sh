@@ -5,7 +5,16 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-COMPOSE_FILE="$SCRIPT_DIR/../docker/docker-compose.prod.yml"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+COMPOSE_FILE="$ROOT_DIR/docker/docker-compose.prod.yml"
+ENV_FILE="$ROOT_DIR/.env.prod"
+
+# Load environment variables so docker compose can use ${GITHUB_USERNAME}, ${DOMAIN}, etc.
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  source "$ENV_FILE"
+  set +a
+fi
 
 echo "[$(date -Iseconds)] Pulling latest images..."
 docker compose -f "$COMPOSE_FILE" pull
