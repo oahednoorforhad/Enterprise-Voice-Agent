@@ -1,7 +1,6 @@
 .git/
 .gitignore
 .dockerignore
-*.md
 __pycache__/
 *.pyc
 .venv/
