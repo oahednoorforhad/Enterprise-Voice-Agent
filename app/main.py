@@ -131,7 +131,10 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.add_middleware(SessionMiddleware, secret_key=settings.jwt_secret)
+    session_kwargs = {"secret_key": settings.jwt_secret, "same_site": "lax"}
+    if settings.environment == "production":
+        session_kwargs["https_only"] = True
+    app.add_middleware(SessionMiddleware, **session_kwargs)
 
     @app.get("/health", tags=["meta"])
     async def health() -> dict[str, str]:
