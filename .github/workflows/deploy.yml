@@ -37,6 +37,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ env.BACKEND_IMAGE }}:latest
+          no-cache: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
