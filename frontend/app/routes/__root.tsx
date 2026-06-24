@@ -80,7 +80,7 @@ function RootLayout() {
         <div className="flex min-h-screen bg-surface-white dark:bg-surface-dark">
           {isLoggedIn && !hideSidebar && <Sidebar isDark={isDark} onToggleDark={handleToggleDark} />}
           <main
-            className={`flex-1 transition-all duration-300 ${
+            className={`flex-1 transition-all duration-300 pt-14 md:pt-0 ${
               isLoggedIn && !hideSidebar
                 ? (sidebarCollapsed ? 'md:ml-[68px]' : 'md:ml-[var(--sidebar-width)]')
                 : ''

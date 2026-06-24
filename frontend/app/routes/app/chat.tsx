@@ -173,7 +173,7 @@ export function AppChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-full p-6">
+    <div className="flex flex-col h-full sm:p-6 p-4">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 rounded-sm bg-surface-stone dark:bg-surface-dark-elevated">
