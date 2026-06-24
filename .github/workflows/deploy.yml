@@ -73,7 +73,19 @@ jobs:
         shell: bash
         env:
           DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+          DOCKER_COMPOSE_FILE: docker/docker-compose.prod.yml
         run: |
           ssh -o StrictHostKeyChecking=accept-new \
               -i ~/.ssh/id_ed25519 \
-              root@"$DROPLET_HOST" "cd /opt/eva && bash scripts/deploy.sh"
+              root@"$DROPLET_HOST" "
+            cd /opt/eva &&
+            set -a && source .env.prod && set +a &&
+            echo '[$(date -Iseconds)] Pulling images...' &&
+            docker compose -f $DOCKER_COMPOSE_FILE pull &&
+            echo '[$(date -Iseconds)] Restarting...' &&
+            docker compose -f $DOCKER_COMPOSE_FILE up -d &&
+            echo '[$(date -Iseconds)] Cleaning...' &&
+            docker image prune -f &&
+            echo '[$(date -Iseconds)] Deploy complete.' &&
+            docker compose -f $DOCKER_COMPOSE_FILE ps
+          "
