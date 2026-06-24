@@ -131,7 +131,7 @@ type ExtendedAudioContext = AudioContext & {
  */
 export function schedulePlayback(ctx: AudioContext, pcm: Float32Array): void {
   const buffer = ctx.createBuffer(1, pcm.length, TARGET_SAMPLE_RATE)
-  buffer.copyToChannel(pcm, 0)
+  buffer.copyToChannel(pcm as Float32Array<ArrayBuffer>, 0)
   const source = ctx.createBufferSource()
   source.buffer = buffer
   source.connect(ctx.destination)
