@@ -17,5 +17,5 @@ venv/
 node_modules/
 dist/
 build/
-data/
+# data/ is needed for scenarios/*.json (demo apply-scenario) — see Dockerfile
 .puku/
