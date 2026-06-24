@@ -71,6 +71,7 @@ async def callback_google(
     5. Redirect to the frontend with the token.
     """
     oauth = _get_oauth(request)
+    settings = get_settings()
 
     token = await oauth.google.authorize_access_token(request)
     if token is None:
