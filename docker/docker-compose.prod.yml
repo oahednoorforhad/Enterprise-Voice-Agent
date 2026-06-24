@@ -1,0 +1,91 @@
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.0-pg16
+    restart: unless-stopped
+    env_file: ../.env.prod
+    environment:
+      POSTGRES_USER: eva
+      POSTGRES_DB: eva
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: pg_isready -U eva -d eva
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    mem_limit: 512m
+    networks:
+      - internal
+
+  backend:
+    image: ghcr.io/${GITHUB_USERNAME}/eva-backend:latest
+    restart: unless-stopped
+    env_file: ../.env.prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:8000/health || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    networks:
+      - internal
+
+  frontend:
+    image: ghcr.io/${GITHUB_USERNAME}/eva-frontend:latest
+    restart: unless-stopped
+    mem_limit: 128m
+    networks:
+      - internal
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    environment:
+      - DOMAIN=${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/entrypoint.sh:/entrypoint.sh:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d/app.http.conf:/etc/nginx/conf.d/app.http.conf:ro
+      - ./nginx/templates/app.conf.template:/etc/nginx/templates/app.conf.template:ro
+      - certbot-certs:/etc/letsencrypt:ro
+      - certbot-www:/var/www/certbot:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    mem_limit: 128m
+    networks:
+      - internal
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot-certs:/etc/letsencrypt
+      - certbot-www:/var/www/certbot
+    # Attempt renewal every 12h — Let's Encrypt certs expire after 90 days
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $$!; done"
+    mem_limit: 64m
+    networks:
+      - internal
+
+volumes:
+  postgres-data:
+  certbot-certs:
+  certbot-www:
+  backup-data:
+
+networks:
+  internal:
+    driver: bridge
