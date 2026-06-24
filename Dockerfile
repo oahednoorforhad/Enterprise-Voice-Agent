@@ -10,6 +10,7 @@ WORKDIR /app
 
 COPY pyproject.toml uv.lock README.md ./
 COPY app/ ./app/
+COPY data/ ./data/
 COPY migrations/ ./migrations/
 COPY alembic.ini ./
 
