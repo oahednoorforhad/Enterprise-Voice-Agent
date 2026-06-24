@@ -8,11 +8,15 @@ import Sidebar from '../components/Sidebar'
 interface AppContextType {
   backendOffline: boolean
   setBackendOffline: (v: boolean) => void
+  isDark: boolean
+  onToggleDark: () => void
 }
 
 const AppCtx = createContext<AppContextType>({
   backendOffline: false,
   setBackendOffline: () => {},
+  isDark: false,
+  onToggleDark: () => {},
 })
 
 export const useAppContext = () => useContext(AppCtx)
@@ -76,7 +80,7 @@ function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppCtx.Provider value={{ backendOffline, setBackendOffline }}>
+        <AppCtx.Provider value={{ backendOffline, setBackendOffline, isDark, onToggleDark: handleToggleDark }}>
         <div className="flex min-h-dvh bg-surface-white dark:bg-surface-dark">
           {isLoggedIn && !hideSidebar && <Sidebar isDark={isDark} onToggleDark={handleToggleDark} />}
           <main

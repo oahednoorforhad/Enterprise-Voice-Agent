@@ -128,9 +128,9 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
         />
       )}
 
-      {/* Mobile hamburger */}
+      {/* Mobile hamburger — hidden: bottom tab bar handles mobile nav */}
       <button
-        className="fixed top-4 left-4 z-50 md:hidden p-3 min-w-[44px] min-h-[44px] rounded-sm bg-surface-white dark:bg-surface-dark-elevated shadow-sm border border-hairline dark:border-white/10"
+        className="fixed top-4 left-4 z-50 hidden p-3 min-w-[44px] min-h-[44px] rounded-sm bg-surface-white dark:bg-surface-dark-elevated shadow-sm border border-hairline dark:border-white/10"
         onClick={() => setMobileOpen(true)}
         aria-label="Open menu"
       >
