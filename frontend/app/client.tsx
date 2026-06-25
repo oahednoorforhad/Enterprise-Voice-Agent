@@ -10,6 +10,10 @@ if (sentryDsn) {
   Sentry.init({
     dsn: sentryDsn,
     environment: process.env.VITE_API_URL?.startsWith('https') ? 'production' : 'development',
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.globalHandlersIntegration({ onerror: true, onunhandledrejection: true }),
+    ],
     tracesSampleRate: 0.1,
   })
 }
