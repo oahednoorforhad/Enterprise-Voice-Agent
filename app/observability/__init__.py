@@ -18,7 +18,10 @@ from __future__ import annotations
 
 from typing import Any
 
+import structlog
 from langfuse import Langfuse as _Langfuse
+
+logger = structlog.get_logger(__name__)
 
 _langfuse_instance: _Langfuse | None = None
 
@@ -48,8 +51,14 @@ def init_langfuse(
             base_url=resolved_url,
             **kwargs,
         )
+        logger.info(
+            "langfuse initialized",
+            key_prefix=public_key[:15] + "..." if public_key else "",
+            base_url=resolved_url,
+        )
         return _langfuse_instance
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("langfuse init failed", error=str(exc))
         _langfuse_instance = None
         return None
 
@@ -65,6 +74,6 @@ def shutdown_langfuse() -> None:
     if _langfuse_instance is not None:
         try:
             _langfuse_instance.flush()
-        except Exception:  # noqa: BLE001
-            pass
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("langfuse flush during shutdown failed", error=str(exc))
         _langfuse_instance = None

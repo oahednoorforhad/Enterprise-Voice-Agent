@@ -46,20 +46,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             traces_sample_rate=0.1,
         )
 
-    # ── Langfuse Observability ──────────────────────────────────────────
-    if settings.langfuse_public_key and settings.langfuse_secret_key:
-        try:
-            init_langfuse(
-                public_key=settings.langfuse_public_key,
-                secret_key=settings.langfuse_secret_key,
-                # LANGFUSE_BASE_URL takes precedence; fall back to langfuse_host
-                base_url=settings.langfuse_base_url or settings.langfuse_host,
-            )
-        except Exception:  # noqa: BLE001
-            pass  # silently bypass if init fails
-    # Keys missing → silently skip (no warning spam).
-
-    # ── Structured logging ──────────────────────────────────────────────
+    # ── Structured logging (config MUST precede all other init so logs
+    #     from Langfuse, DB pool, etc. are captured) ─────────────────────
     processors = [
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
@@ -74,6 +62,30 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
     )
     log = structlog.get_logger()
+
+    # ── Langfuse Observability ──────────────────────────────────────────
+    if settings.langfuse_public_key and settings.langfuse_secret_key:
+        base_url = settings.langfuse_base_url or settings.langfuse_host
+        log.info("initializing langfuse", base_url=base_url)
+        try:
+            result = init_langfuse(
+                public_key=settings.langfuse_public_key,
+                secret_key=settings.langfuse_secret_key,
+                base_url=base_url,
+            )
+            if result is not None:
+                log.info("langfuse initialized")
+            else:
+                log.warning("langfuse init returned None (see observability log for details)")
+        except Exception as exc:
+            log.warning("langfuse init raised exception", error=str(exc))
+    else:
+        log.info(
+            "langfuse skipped",
+            has_pk=bool(settings.langfuse_public_key),
+            has_sk=bool(settings.langfuse_secret_key),
+        )
+
     log.info(
         "EVA backend starting",
         environment=settings.environment,
