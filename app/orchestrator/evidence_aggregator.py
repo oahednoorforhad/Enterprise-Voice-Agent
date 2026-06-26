@@ -209,15 +209,21 @@ _TOOL_BUILDERS["get_support_tickets"] = _build_support_ticket
 
 
 def _build_created_ticket(data: Any, timestamp: str) -> EvidenceItem:
-    """Build evidence item from a created ticket."""
+    """Build evidence item from a created ticket.
+
+    Handles both ``TicketModel`` (confirmed=True, has ``.id``/``.status``)
+    and ``TicketPreview`` (confirmed=False, no ``.id``/``.status``).
+    """
+    metadata: dict[str, str] = {}
+    if hasattr(data, "id") and data.id is not None:
+        metadata["ticket_id"] = str(data.id)
+    if hasattr(data, "status") and data.status is not None:
+        metadata["status"] = data.status
     return EvidenceItem(
         source="support_tickets",
         tool_name="create_support_ticket",
         content=data.model_dump_json(),
-        metadata={
-            "ticket_id": str(data.id),
-            "status": data.status,
-        },
+        metadata=metadata,
         timestamp=timestamp,
     )
 
