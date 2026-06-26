@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, type Dispatch, type SetStateAction } from 'react'
 import { Send, Sparkles, AlertCircle } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import ChatMessage, { type Message } from '../../components/ChatMessage'
 import ThinkingPanel, { type ThinkingStep } from '../../components/ThinkingPanel'
 import { mock } from '../../lib/api-client'
@@ -54,6 +55,7 @@ async function applyEvent(
 
 export function AppChatPage() {
   const { setBackendOffline } = useAppContext()
+  const queryClient = useQueryClient()
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -148,6 +150,8 @@ export function AppChatPage() {
           await new Promise<void>((r) => setTimeout(r, 0))
         }
       }
+      // Refresh ticket list after any interaction (tickets may have been created)
+      queryClient.invalidateQueries({ queryKey: ['ticketList'] })
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
       setStreamError('Connection lost. The backend may be unreachable.')
@@ -163,7 +167,7 @@ export function AppChatPage() {
       }
       setMessages((prev) => [...prev, fallback])
     }
-  }, [input, isStreaming, setBackendOffline])
+  }, [input, isStreaming, setBackendOffline, queryClient])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
