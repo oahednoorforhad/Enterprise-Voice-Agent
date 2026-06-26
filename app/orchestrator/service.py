@@ -34,6 +34,7 @@ import uuid
 from collections.abc import AsyncGenerator, Callable, Coroutine
 from dataclasses import dataclass
 from typing import Any, TypedDict
+from uuid import UUID
 
 from langfuse import observe
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -56,6 +57,7 @@ from app.tools.ticket.functions import (
     get_support_tickets,
     get_ticket_status,
 )
+from app.tools.ticket.models import TicketModel, TicketPreview
 
 # ── Constants ──────────────────────────────────────────────────────────────
 
@@ -140,6 +142,54 @@ def _build_create_ticket_kwargs(
     }
 
 
+# ── Auto-create support ticket wrapper ──────────────────────────────────────
+# Validates via LLM (confirmed=False), then persists if guardrails pass.
+
+
+async def _auto_create_support_ticket(
+    session: AsyncSession,
+    customer_id: UUID,
+    message: str = "",
+) -> TicketModel | TicketPreview:
+    """Validate via LLM, then persist ticket if guardrails pass.
+
+    Two-step process:
+
+    1. Call ``create_support_ticket(confirmed=False)`` for LLM validation
+       (returns ``TicketPreview``, no DB write).
+    2. If the preview is ``valid`` and has a non-empty ``title``, call
+       ``create_support_ticket(confirmed=True)`` with the extracted fields
+       to persist the ticket (returns ``TicketModel``).
+
+    Returns
+    -------
+    TicketModel
+        On successful creation (DB persisted).
+    TicketPreview
+        When validation fails, title is empty, or rate-limited.
+    """
+    # Step 1: LLM validation (confirmed=False, no DB write)
+    preview = await create_support_ticket(
+        session, customer_id, message=message, confirmed=False,
+    )
+
+    # Step 2: If valid and has a title, persist the ticket
+    if isinstance(preview, TicketPreview) and preview.valid and preview.title:
+        ticket = await create_support_ticket(
+            session,
+            customer_id,
+            title=preview.title,
+            description=preview.description,
+            category=preview.category,
+            priority=preview.priority,
+            confirmed=True,
+        )
+        return ticket
+
+    # Return preview as-is (validation failed or no title extracted)
+    return preview
+
+
 DEFAULT_TOOL_REGISTRY: dict[str, _ToolEntry] = {
     "get_customer_profile": _ToolEntry(
         func=get_customer_profile,
@@ -178,7 +228,7 @@ DEFAULT_TOOL_REGISTRY: dict[str, _ToolEntry] = {
         kwargs_builder=_build_standard_kwargs,
     ),
     "create_support_ticket": _ToolEntry(
-        func=create_support_ticket,
+        func=_auto_create_support_ticket,
         kwargs_builder=_build_create_ticket_kwargs,
     ),
 }
