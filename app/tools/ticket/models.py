@@ -17,3 +17,28 @@ class TicketModel(BaseModel):
     priority: str | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class TicketPreview(BaseModel):
+    """Pre-creation preview returned when confirmed=False."""
+
+    title: str
+    description: str | None = None
+    category: str
+    priority: str
+    valid: bool = True
+    validation_message: str | None = None
+
+
+class TicketAnalysis(BaseModel):
+    """Structured LLM output for ticket validation and field extraction."""
+
+    title: str
+    description: str | None = None
+    category: str
+    priority: str = "medium"
+    is_specific_and_actionable: bool = True
+    is_not_abusive: bool = True
+    is_not_in_kb: bool = True
+    is_product_related: bool = True
+    validation_message: str | None = None
