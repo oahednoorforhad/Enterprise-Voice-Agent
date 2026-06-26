@@ -15,6 +15,7 @@ async function applyEvent(
   setIsStreaming: Dispatch<SetStateAction<boolean>>,
   setStreamError: Dispatch<SetStateAction<string | null>>,
   setBackendOffline: (v: boolean) => void,
+  onTicketCreated?: () => void,
 ): Promise<void> {
   const stage = event.stage as string
 
@@ -27,6 +28,9 @@ async function applyEvent(
     const replan = Boolean(event.replan)
     setThinkingSteps((prev) => [...prev, { type: 'tools_selected', tools, replan }])
   } else if (stage === 'tool_done') {
+    if (event.tool === 'create_support_ticket' && Boolean(event.ok)) {
+      onTicketCreated?.()
+    }
     setThinkingSteps((prev) => [
       ...prev,
       { type: 'tool_done', tool: event.tool as string, ok: Boolean(event.ok) },
@@ -70,6 +74,7 @@ export function AppChatPage() {
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamError, setStreamError] = useState<string | null>(null)
 
+  const ticketCreatedRef = useRef(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -100,6 +105,7 @@ export function AppChatPage() {
     setThinkingSteps([])
     setStreamError(null)
     setIsStreaming(true)
+    ticketCreatedRef.current = false
 
     const abort = new AbortController()
     abortRef.current = abort
@@ -146,12 +152,16 @@ export function AppChatPage() {
             continue
           }
 
-          await applyEvent(event, setThinkingSteps, setMessages, setIsStreaming, setStreamError, setBackendOffline)
+          await applyEvent(
+            event, setThinkingSteps, setMessages, setIsStreaming, setStreamError, setBackendOffline,
+            () => { ticketCreatedRef.current = true },
+          )
           await new Promise<void>((r) => setTimeout(r, 0))
         }
       }
-      // Refresh ticket list after any interaction (tickets may have been created)
-      queryClient.invalidateQueries({ queryKey: ['ticketList'] })
+      if (ticketCreatedRef.current) {
+        queryClient.invalidateQueries({ queryKey: ['ticketList'] })
+      }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
       setStreamError('Connection lost. The backend may be unreachable.')
