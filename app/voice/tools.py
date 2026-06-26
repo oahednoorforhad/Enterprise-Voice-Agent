@@ -18,12 +18,13 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.core.exceptions import RateLimitError, TicketCreateError
 from app.tools.analytics.functions import get_usage_analytics
 from app.tools.billing.functions import get_billing_history
 from app.tools.customer.functions import get_customer_profile, get_subscription_status
 from app.tools.history.functions import get_session_history
 from app.tools.knowledge.functions import search_documentation, search_policies
-from app.tools.ticket.functions import get_support_tickets, get_ticket_status
+from app.tools.ticket.functions import create_support_ticket, get_support_tickets, get_ticket_status
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,54 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 GEMINI_TOOL_DECLARATIONS: list[dict] = [
+    {
+        "name": "create_support_ticket",
+        "description": (
+            "Create a support ticket for the customer's issue. "
+            "The customer must confirm before creation. "
+            "Use confirmed=false first to return a preview, then call again with confirmed=true "
+            "after the customer approves."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "description": "Short summary of the issue",
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Detailed description of the issue",
+                },
+                "category": {
+                    "type": "string",
+                    "enum": [
+                        "Bug Report",
+                        "Feature Request",
+                        "Account Issue",
+                        "Billing Issue",
+                        "Performance Issue",
+                        "Integration Issue",
+                        "Other",
+                    ],
+                    "description": "Category of the issue",
+                },
+                "priority": {
+                    "type": "string",
+                    "enum": ["low", "medium", "high", "critical"],
+                    "description": "Priority of the ticket",
+                },
+                "confirmed": {
+                    "type": "boolean",
+                    "description": (
+                        "Set to true only after the customer has explicitly confirmed "
+                        "they want to create the ticket"
+                    ),
+                },
+            },
+            "required": ["title", "confirmed"],
+        },
+    },
     {
         "name": "get_customer_profile",
         "description": (
@@ -271,5 +320,20 @@ async def _run_tool(
     if tool_name == "get_session_history":
         result = await get_session_history(session, customer_id)
         return result.model_dump(mode="json")
+
+    if tool_name == "create_support_ticket":
+        try:
+            ticket = await create_support_ticket(
+                session,
+                customer_id,
+                title=args.get("title", ""),
+                description=args.get("description"),
+                category=args.get("category", ""),
+                priority=args.get("priority", "medium"),
+                confirmed=args.get("confirmed", False),
+            )
+            return ticket.model_dump(mode="json")
+        except (RateLimitError, TicketCreateError) as e:
+            return {"error": str(e)}
 
     raise ValueError(f"Unknown tool name: {tool_name!r}")

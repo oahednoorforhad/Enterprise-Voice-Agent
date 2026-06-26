@@ -208,6 +208,23 @@ def _build_support_ticket(data: Any, timestamp: str) -> EvidenceItem:
 _TOOL_BUILDERS["get_support_tickets"] = _build_support_ticket
 
 
+def _build_created_ticket(data: Any, timestamp: str) -> EvidenceItem:
+    """Build evidence item from a created ticket."""
+    return EvidenceItem(
+        source="support_tickets",
+        tool_name="create_support_ticket",
+        content=data.model_dump_json(),
+        metadata={
+            "ticket_id": str(data.id),
+            "status": data.status,
+        },
+        timestamp=timestamp,
+    )
+
+
+_TOOL_BUILDERS["create_support_ticket"] = _build_created_ticket
+
+
 def _build_ticket_status(data: Any, timestamp: str) -> EvidenceItem:
     return EvidenceItem(
         source="support_tickets",

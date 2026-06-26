@@ -15,6 +15,7 @@ from app.schemas.reasoning import IntentAnalysisResult, ToolSelectionPlan
 # ── Known tool names (must match app/api/tools_router.py tool families) ──
 
 KNOWN_TOOLS: frozenset[str] = frozenset({
+    "create_support_ticket",
     "get_customer_profile",
     "get_subscription_status",
     "get_billing_history",
@@ -38,6 +39,7 @@ _INTENT_TOOL_ORDER: dict[str, list[str]] = {
     "support_ticket": [
         "get_support_tickets",
         "get_ticket_status",
+        "create_support_ticket",
         "search_documentation",
         "search_policies",
     ],

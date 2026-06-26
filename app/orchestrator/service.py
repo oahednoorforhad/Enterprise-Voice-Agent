@@ -51,11 +51,15 @@ from app.tools.billing.functions import get_billing_history
 from app.tools.customer.functions import get_customer_profile, get_subscription_status
 from app.tools.history.functions import get_session_history
 from app.tools.knowledge.functions import search_documentation, search_policies
-from app.tools.ticket.functions import get_support_tickets, get_ticket_status
+from app.tools.ticket.functions import (
+    create_support_ticket,
+    get_support_tickets,
+    get_ticket_status,
+)
 
 # ── Constants ──────────────────────────────────────────────────────────────
 
-_TOOL_TIMEOUT_SECONDS = 3.0
+_TOOL_TIMEOUT_SECONDS = 15.0  # Increased from 3.0 — create_support_ticket calls LLM internally
 
 # ── Typed tool registry ────────────────────────────────────────────────────
 # Each entry carries the async callable AND a kwargs builder so the fragile
@@ -118,6 +122,24 @@ def _build_ticket_status_kwargs(
     }
 
 
+def _build_create_ticket_kwargs(
+    session: AsyncSession,
+    customer_id_str: str,
+    message: str,
+) -> dict[str, Any]:
+    """Build kwargs for create_support_ticket.
+
+    Passes the raw user message so the function can parse it with LLM.
+    Fields like title/category/priority are set to empty by default —
+    the LLM inside the function extracts them from the message.
+    """
+    return {
+        "session": session,
+        "customer_id": uuid.UUID(customer_id_str),
+        "message": message,
+    }
+
+
 DEFAULT_TOOL_REGISTRY: dict[str, _ToolEntry] = {
     "get_customer_profile": _ToolEntry(
         func=get_customer_profile,
@@ -154,6 +176,10 @@ DEFAULT_TOOL_REGISTRY: dict[str, _ToolEntry] = {
     "get_session_history": _ToolEntry(
         func=get_session_history,
         kwargs_builder=_build_standard_kwargs,
+    ),
+    "create_support_ticket": _ToolEntry(
+        func=create_support_ticket,
+        kwargs_builder=_build_create_ticket_kwargs,
     ),
 }
 
@@ -535,7 +561,7 @@ class OrchestratorService:
         self,
         message: str,
         conversation_history: str | None = None,
-    ) -> AsyncGenerator["StageEvent", None]:
+    ) -> AsyncGenerator[StageEvent, None]:
         try:
             yield {"stage": "thinking", "label": "Thinking…"}
             await asyncio.sleep(0)
