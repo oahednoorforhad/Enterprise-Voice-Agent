@@ -557,12 +557,16 @@ class OrchestratorService:
                         entry.func(**kwargs),
                         timeout=_TOOL_TIMEOUT_SECONDS,
                     )
+                    await session.commit()
                     return (tool_name, ToolResult.ok(result))
                 except TimeoutError:
+                    await session.rollback()
                     return (tool_name, ToolResult.fail("Tool timed out"))
                 except DomainException as e:
+                    await session.rollback()
                     return (tool_name, ToolResult.fail(str(e)))
                 except Exception as e:
+                    await session.rollback()
                     return (tool_name, ToolResult.fail(f"Unexpected error: {e}"))
 
         tasks = [_run_single(name) for name in tool_names]
@@ -593,12 +597,16 @@ class OrchestratorService:
                         entry.func(**kwargs),
                         timeout=_TOOL_TIMEOUT_SECONDS,
                     )
+                    await session.commit()
                     return (tool_name, ToolResult.ok(result))
                 except TimeoutError:
+                    await session.rollback()
                     return (tool_name, ToolResult.fail("Tool timed out"))
                 except DomainException as e:
+                    await session.rollback()
                     return (tool_name, ToolResult.fail(str(e)))
                 except Exception as e:
+                    await session.rollback()
                     return (tool_name, ToolResult.fail(f"Unexpected error: {e}"))
 
         coros = [_run_single(name) for name in tool_names]
