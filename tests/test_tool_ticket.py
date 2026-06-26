@@ -4,11 +4,17 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from sqlalchemy import select
 
-from app.core.exceptions import TicketNotFoundError
+from app.core.exceptions import RateLimitError, TicketCreateError, TicketNotFoundError
+from app.core.rate_limiter import rate_limiter
 from app.db.models import Customer, SupportTicket
-from app.tools.ticket.functions import get_support_tickets, get_ticket_status
-from app.tools.ticket.models import TicketModel
+from app.tools.ticket.functions import (
+    create_support_ticket,
+    get_support_tickets,
+    get_ticket_status,
+)
+from app.tools.ticket.models import TicketModel, TicketPreview
 
 pytestmark = pytest.mark.asyncio
 
@@ -287,6 +293,223 @@ class TestGetTicketStatus:
         with pytest.raises(TicketNotFoundError) as exc:
             await get_ticket_status(async_session, attacker_id, ticket_id)
         assert str(ticket_id) in str(exc.value)
+
+
+# ---------------------------------------------------------------------------
+# create_support_ticket — creation, validation, rate limiting
+# ---------------------------------------------------------------------------
+
+
+class TestCreateSupportTicket:
+    """Creation, validation, and rate limiting for create_support_ticket."""
+
+    async def test_happy_path_writes_to_db(self, async_session):
+        """confirmed=True creates a ticket in the database."""
+        customer_id = uuid.uuid4()
+        async_session.add(
+            Customer(
+                id=customer_id,
+                name="Test",
+                email=f"{customer_id}@test.com",
+                is_active=True,
+            )
+        )
+        await async_session.flush()
+
+        result = await create_support_ticket(
+            async_session,
+            customer_id,
+            title="Network issue",
+            description="Cannot connect to VPN",
+            category="bug report",
+            priority="high",
+            confirmed=True,
+        )
+
+        assert isinstance(result, TicketModel)
+        assert result.subject == "Network issue"
+        assert result.description == "Cannot connect to VPN"
+        assert result.priority == "high"
+        assert result.customer_id == customer_id
+        assert result.status == "open"
+
+        # Verify the ticket was persisted
+        db_ticket = (
+            await async_session.execute(
+                select(SupportTicket).where(SupportTicket.id == result.id)
+            )
+        ).scalar_one_or_none()
+        assert db_ticket is not None
+        assert db_ticket.title == "Network issue"
+        assert db_ticket.category == "bug report"
+
+    async def test_preview_does_not_write_to_db(self, async_session):
+        """confirmed=False returns TicketPreview without writing to DB."""
+        customer_id = uuid.uuid4()
+        async_session.add(
+            Customer(
+                id=customer_id,
+                name="Test",
+                email=f"{customer_id}@test.com",
+                is_active=True,
+            )
+        )
+        await async_session.flush()
+
+        result = await create_support_ticket(
+            async_session,
+            customer_id,
+            title="Network issue",
+            description="Cannot connect",
+            category="bug report",
+            priority="high",
+            confirmed=False,
+        )
+
+        assert isinstance(result, TicketPreview)
+        assert result.title == "Network issue"
+        assert result.description == "Cannot connect"
+        assert result.category == "bug report"
+        assert result.priority == "high"
+        assert result.valid is True
+
+        # Verify no ticket was written to DB
+        tickets = (
+            await async_session.execute(
+                select(SupportTicket).where(
+                    SupportTicket.customer_id == customer_id
+                )
+            )
+        ).scalars().all()
+        assert len(tickets) == 0
+
+    async def test_invalid_category_raises_error(self, async_session):
+        """An invalid category raises TicketCreateError."""
+        customer_id = uuid.uuid4()
+        async_session.add(
+            Customer(
+                id=customer_id,
+                name="Test",
+                email=f"{customer_id}@test.com",
+                is_active=True,
+            )
+        )
+        await async_session.flush()
+
+        with pytest.raises(TicketCreateError, match="Invalid category"):
+            await create_support_ticket(
+                async_session,
+                customer_id,
+                title="Network issue",
+                category="not_a_valid_category",
+                confirmed=True,
+            )
+
+    async def test_empty_title_when_confirmed_raises_error(self, async_session):
+        """Empty title with confirmed=True raises TicketCreateError."""
+        customer_id = uuid.uuid4()
+        async_session.add(
+            Customer(
+                id=customer_id,
+                name="Test",
+                email=f"{customer_id}@test.com",
+                is_active=True,
+            )
+        )
+        await async_session.flush()
+
+        with pytest.raises(TicketCreateError, match="Title is required"):
+            await create_support_ticket(
+                async_session,
+                customer_id,
+                title="",
+                category="bug report",
+                confirmed=True,
+            )
+
+    async def test_rate_limit_enforcement(self, async_session):
+        """Second creation within the 5-minute window raises RateLimitError."""
+        await rate_limiter.reset()
+        customer_id = uuid.uuid4()
+        async_session.add(
+            Customer(
+                id=customer_id,
+                name="Test",
+                email=f"{customer_id}@test.com",
+                is_active=True,
+            )
+        )
+        await async_session.flush()
+
+        result = await create_support_ticket(
+            async_session,
+            customer_id,
+            title="First ticket",
+            category="bug report",
+            confirmed=True,
+        )
+        assert isinstance(result, TicketModel)
+
+        with pytest.raises(RateLimitError, match="Rate limit exceeded"):
+            await create_support_ticket(
+                async_session,
+                customer_id,
+                title="Second ticket",
+                category="bug report",
+                confirmed=True,
+            )
+
+    async def test_customer_isolation_rate_limit(self, async_session):
+        """Different customers have independent rate-limit counters."""
+        await rate_limiter.reset()
+        customer_a = uuid.uuid4()
+        customer_b = uuid.uuid4()
+        async_session.add(
+            Customer(
+                id=customer_a,
+                name="A",
+                email=f"{customer_a}@test.com",
+                is_active=True,
+            )
+        )
+        async_session.add(
+            Customer(
+                id=customer_b,
+                name="B",
+                email=f"{customer_b}@test.com",
+                is_active=True,
+            )
+        )
+        await async_session.flush()
+
+        result_a = await create_support_ticket(
+            async_session,
+            customer_a,
+            title="A's issue",
+            category="bug report",
+            confirmed=True,
+        )
+        assert isinstance(result_a, TicketModel)
+
+        result_b = await create_support_ticket(
+            async_session,
+            customer_b,
+            title="B's issue",
+            category="bug report",
+            confirmed=True,
+        )
+        assert isinstance(result_b, TicketModel)
+
+        # A's second ticket should be rate-limited
+        with pytest.raises(RateLimitError):
+            await create_support_ticket(
+                async_session,
+                customer_a,
+                title="A's second issue",
+                category="bug report",
+                confirmed=True,
+            )
+
 
 
 

@@ -31,13 +31,14 @@ from app.orchestrator.evidence_aggregator import EvidenceAggregator
 # Re-import internal models so tests can construct fake LLM responses.
 from app.orchestrator.intent_analyzer import IntentAnalyzer, _IntentLLMResponse
 from app.orchestrator.service import (
+    DEFAULT_TOOL_REGISTRY,
     EvidenceSufficiencyChecker,
     OrchestratorService,
     _build_knowledge_kwargs,
     _build_standard_kwargs,
     _ToolEntry,
 )
-from app.orchestrator.tool_selector import ToolSelector
+from app.orchestrator.tool_selector import _INTENT_TOOL_ORDER, KNOWN_TOOLS, ToolSelector
 from app.reasoning.pipeline import ReasoningPipeline, _ReasoningLLMResponse
 from app.schemas.reasoning import (
     ChatResponse,
@@ -1336,3 +1337,19 @@ class TestLangfuseSafe:
             pytest.fail("init_langfuse raised unexpectedly with garbage keys")
         finally:
             shutdown_langfuse()
+
+
+class TestCreateSupportTicketRegistration:
+    """``create_support_ticket`` is registered in all three locations."""
+
+    def test_tool_in_default_registry(self) -> None:
+        """``create_support_ticket`` is present in ``DEFAULT_TOOL_REGISTRY``."""
+        assert "create_support_ticket" in DEFAULT_TOOL_REGISTRY
+
+    def test_tool_in_known_tools(self) -> None:
+        """``create_support_ticket`` is present in ``KNOWN_TOOLS``."""
+        assert "create_support_ticket" in KNOWN_TOOLS
+
+    def test_tool_in_intent_order(self) -> None:
+        """``create_support_ticket`` is registered under the ``support_ticket`` intent."""
+        assert "create_support_ticket" in _INTENT_TOOL_ORDER["support_ticket"]

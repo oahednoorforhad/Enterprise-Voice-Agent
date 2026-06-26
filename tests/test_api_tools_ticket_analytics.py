@@ -9,7 +9,9 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import select
 
+from app.core.rate_limiter import rate_limiter
 from app.db.models import Customer, SupportTicket, UsageAnalytic
 from app.main import app
 
@@ -301,3 +303,123 @@ class TestUsageAnalyticsEndpoint:
         body = response.json()
         assert body["success"] is True
         assert body["data"] == []
+
+
+class TestCreateTicketEndpoint:
+    """POST /api/v1/tools/ticket/create."""
+
+    async def test_create_happy_path(self, async_session):
+        """Happy path — confirmed=True creates ticket and returns TicketModel."""
+        customer_id = uuid.uuid4()
+        async_session.add(
+            Customer(
+                id=customer_id,
+                name="Create Test",
+                email=f"{customer_id}@test.com",
+                is_active=True,
+            )
+        )
+        await async_session.commit()
+
+        await rate_limiter.reset()
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/v1/tools/ticket/create?customer_id={customer_id}",
+                json={
+                    "title": "My printer is on fire",
+                    "description": "Smoke coming from the USB port",
+                    "category": "bug report",
+                    "priority": "high",
+                    "confirmed": True,
+                },
+            )
+
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["success"] is True
+        assert body["error"] is None
+        data = body["data"]
+        assert data["subject"] == "My printer is on fire"
+        assert data["status"] == "open"
+        assert data["priority"] == "high"
+        assert data["id"] is not None
+
+    async def test_create_invalid_category(self, async_session):
+        """Invalid category returns success=False with descriptive error."""
+        customer_id = uuid.uuid4()
+        async_session.add(
+            Customer(
+                id=customer_id,
+                name="Invalid Cat",
+                email=f"{customer_id}@test.com",
+                is_active=True,
+            )
+        )
+        await async_session.commit()
+
+        await rate_limiter.reset()
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/v1/tools/ticket/create?customer_id={customer_id}",
+                json={
+                    "title": "Test ticket",
+                    "description": "Test",
+                    "category": "invalid_category",
+                    "priority": "medium",
+                    "confirmed": True,
+                },
+            )
+
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["success"] is False
+        assert body["data"] is None
+        assert body["error"] is not None
+        assert "Invalid category" in body["error"]
+
+    async def test_create_preview_no_db_write(self, async_session):
+        """confirmed=False returns preview dict, no SupportTicket row persisted."""
+        customer_id = uuid.uuid4()
+        async_session.add(
+            Customer(
+                id=customer_id,
+                name="Preview Test",
+                email=f"{customer_id}@test.com",
+                is_active=True,
+            )
+        )
+        await async_session.commit()
+
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            response = await ac.post(
+                f"/api/v1/tools/ticket/create?customer_id={customer_id}",
+                json={
+                    "title": "Preview ticket",
+                    "description": "Not yet confirmed",
+                    "category": "feature request",
+                    "priority": "low",
+                    "confirmed": False,
+                },
+            )
+
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["success"] is True
+        data = body["data"]
+        assert data["title"] == "Preview ticket"
+        assert data["description"] == "Not yet confirmed"
+        assert data["category"] == "feature request"
+        assert data["priority"] == "low"
+        assert data["valid"] is True
+
+        # Verify no ticket row was written to DB
+        result = await async_session.execute(
+            select(SupportTicket).where(SupportTicket.customer_id == customer_id)
+        )
+        rows = result.scalars().all()
+        assert len(rows) == 0

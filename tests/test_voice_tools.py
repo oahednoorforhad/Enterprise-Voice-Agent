@@ -2,18 +2,19 @@
 
 from __future__ import annotations
 
-import json
 import uuid
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from app.tools.ticket.models import TicketModel
 from app.voice.tools import GEMINI_TOOL_DECLARATIONS, dispatch_tool
-
 
 # ── Declaration structure ─────────────────────────────────────────────────────
 
 EXPECTED_TOOL_NAMES = {
+    "create_support_ticket",
     "get_customer_profile",
     "get_subscription_status",
     "get_billing_history",
@@ -27,7 +28,7 @@ EXPECTED_TOOL_NAMES = {
 
 
 def test_declarations_count():
-    assert len(GEMINI_TOOL_DECLARATIONS) == 9
+    assert len(GEMINI_TOOL_DECLARATIONS) == 10
 
 
 def test_declaration_names():
@@ -143,7 +144,7 @@ async def test_dispatch_get_ticket_status():
         "app.voice.tools.get_ticket_status",
         new=AsyncMock(return_value=_FakeModel()),
     ) as mock_fn:
-        result = await dispatch_tool(
+        await dispatch_tool(
             "get_ticket_status",
             {"ticket_id": str(ticket_uuid)},
             factory,
@@ -204,6 +205,52 @@ async def test_dispatch_search_documentation():
 
     assert "results" in result
     assert mock_fn.call_args.args[1] == "SSO setup"
+
+
+@pytest.mark.asyncio
+async def test_dispatch_create_support_ticket():
+    ticket_id = uuid.uuid4()
+    now = datetime.now(tz=UTC)
+    mock_ticket = TicketModel(
+        id=ticket_id,
+        customer_id=CUSTOMER_UUID,
+        subject="Test issue",
+        description="Something broke",
+        status="open",
+        priority="high",
+        created_at=now,
+        updated_at=now,
+    )
+    mock_session = AsyncMock()
+    factory = _make_session_factory(mock_session)
+
+    with patch(
+        "app.voice.tools.create_support_ticket",
+        new=AsyncMock(return_value=mock_ticket),
+    ) as mock_create:
+        result = await dispatch_tool(
+            "create_support_ticket",
+            {
+                "title": "Test issue",
+                "description": "Something broke",
+                "category": "Bug Report",
+                "priority": "high",
+                "confirmed": True,
+            },
+            factory,
+            CUSTOMER_UUID,
+        )
+
+    mock_create.assert_awaited_once()
+    # customer_id is injected server-side as a positional arg (not in kwargs)
+    assert mock_create.call_args.args[1] == CUSTOMER_UUID
+    assert mock_create.call_args.kwargs["title"] == "Test issue"
+    assert mock_create.call_args.kwargs["confirmed"] is True
+    assert mock_create.call_args.kwargs["category"] == "Bug Report"
+    assert mock_create.call_args.kwargs["priority"] == "high"
+    assert "customer_id" not in mock_create.call_args.kwargs
+    assert result["id"] == str(ticket_id)
+    assert result["subject"] == "Test issue"
 
 
 @pytest.mark.asyncio
