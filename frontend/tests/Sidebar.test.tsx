@@ -183,4 +183,45 @@ describe('Sidebar session list', () => {
       params: { sessionId: 'sess-new-001' },
     })
   })
+
+  it('"New" button is disabled when current session has 0 messages', () => {
+    mockUseLocation.mockReturnValue({ pathname: '/app/chat/sess-empty' })
+
+    const dataWithEmptySession = {
+      success: true,
+      data: {
+        sessions: [
+          ...defaultSessionData.data.sessions,
+          {
+            session_id: 'sess-empty',
+            title: 'Empty conversation',
+            started_at: '2026-06-27T12:00:00Z',
+            ended_at: null,
+            message_count: 0,
+            last_message_preview: null,
+          },
+        ] as Array<{
+          session_id: string
+          title: string | null
+          started_at: string
+          ended_at: string | null
+          message_count: number
+          last_message_preview: string | null
+        }>,
+        total: 3,
+      },
+      error: null,
+    }
+    mockUseQuery.mockReturnValue({ data: dataWithEmptySession, isLoading: false, isError: false, refetch: vi.fn() })
+
+    renderSidebar()
+
+    const newBtns = screen.getAllByText('New')
+    for (const btn of newBtns) {
+      expect(btn.hasAttribute('disabled')).toBe(true)
+    }
+    // Clicking disabled button should not trigger createSession
+    fireEvent.click(newBtns[0])
+    expect(mockCreateSession).not.toHaveBeenCalled()
+  })
 })

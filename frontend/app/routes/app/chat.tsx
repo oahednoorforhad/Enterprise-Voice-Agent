@@ -100,6 +100,16 @@ export function AppChatPage() {
       return
     }
 
+    setMessages([{
+      id: 'welcome',
+      role: 'assistant',
+      content:
+        'Good day. This is EVA from the executive support desk. I am here to assist you personally with any billing, account, ticket, or policy related inquiries. How may I help you today?',
+      timestamp: new Date().toISOString(),
+    }])
+    setInitialLoading(true)
+    setSessionError(null)
+
     api.getSessionMessages(sessionId).then((res) => {
       setInitialLoading(false)
       if (!res.success) {

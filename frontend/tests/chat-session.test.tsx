@@ -217,6 +217,60 @@ describe('AppChatPage session awareness', () => {
     expect(screen.getByText(defaultWelcomeText, { exact: false })).toBeTruthy()
   })
 
+  // ---- Session switching -----------------------------------------------------
+
+  it('clears messages and shows loading when switching sessions', async () => {
+    // Start with session A that has messages
+    mockParams = { sessionId: 'sess-A' }
+    mockSessionMessagesResult = {
+      success: true,
+      data: {
+        session_id: 'sess-A',
+        title: 'Session A',
+        messages: [
+          { id: 'a1', role: 'user', content: 'Hello from A', created_at: '2026-06-26T10:00:00Z', tool_calls: null },
+        ],
+      },
+    }
+    mockGetSessionMessages.mockResolvedValue(mockSessionMessagesResult)
+
+    const { rerender } = renderChat()
+
+    // Wait for messages from session A to appear
+    await waitFor(() => {
+      expect(screen.getByText('Hello from A')).toBeTruthy()
+    })
+    expect(screen.queryByText('Loading messages...')).toBeNull()
+
+    // Prepare mock for session B — keep promise unresolved so we can verify loading state
+    let resolveSessionB!: (value: unknown) => void
+    mockGetSessionMessages.mockReturnValue(
+      new Promise((resolve) => { resolveSessionB = resolve }),
+    )
+
+    // Switch to session B
+    mockParams = { sessionId: 'sess-B' }
+    rerender(React.createElement(AppChatPage))
+
+    // INSTANTLY: old messages cleared, loading indicator shown
+    await waitFor(() => {
+      expect(screen.queryByText('Hello from A')).toBeNull()
+    })
+    expect(screen.getByText('Loading messages...')).toBeTruthy()
+    expect(mockGetSessionMessages).toHaveBeenCalledWith('sess-B')
+
+    // Resolve with empty messages → welcome message should appear
+    resolveSessionB({
+      success: true,
+      data: { session_id: 'sess-B', title: null, messages: [] },
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading messages...')).toBeNull()
+    })
+    expect(screen.getByText(defaultWelcomeText, { exact: false })).toBeTruthy()
+  })
+
   // ---- Error state -----------------------------------------------------------
 
   it('shows error banner when session fetch fails', async () => {

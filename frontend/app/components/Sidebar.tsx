@@ -35,15 +35,28 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
     queryFn: () => api.listSessions(),
   })
 
+  const currentSessionId = location.pathname.match(/\/app\/chat\/(.+)/)?.[1]
+  const currentSession = currentSessionId
+    ? sessionData?.data?.sessions?.find(s => s.session_id === currentSessionId)
+    : undefined
+  const isCurrentSessionEmpty = currentSession?.message_count === 0
+
   const handleNewConversation = async () => {
-    const res = await api.createSession()
-    if (res.data?.session_id) {
-      navigate({ to: '/app/chat/$sessionId', params: { sessionId: res.data.session_id } })
+    if (creatingSession) return
+    setCreatingSession(true)
+    try {
+      const res = await api.createSession()
+      if (res.data?.session_id) {
+        navigate({ to: '/app/chat/$sessionId', params: { sessionId: res.data.session_id } })
+      }
+    } finally {
+      setCreatingSession(false)
     }
   }
 
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [creatingSession, setCreatingSession] = useState(false)
 
   const handleLogout = () => {
     localStorage.removeItem('jwt')
@@ -107,7 +120,7 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
         <div className="px-3 py-2 border-t border-hairline dark:border-white/5">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-micro font-semibold uppercase tracking-wider text-muted-slate dark:text-white/40">Conversations</h2>
-            <button onClick={handleNewConversation} className="flex items-center gap-1 text-micro text-coral-500 hover:text-coral-400 font-medium transition-colors">
+            <button onClick={handleNewConversation} disabled={creatingSession || isCurrentSessionEmpty} className={`flex items-center gap-1 text-micro text-coral-500 hover:text-coral-400 font-medium transition-colors ${creatingSession || isCurrentSessionEmpty ? 'opacity-50 cursor-not-allowed' : ''}`}>
               <Plus size={14} /> New
             </button>
           </div>
