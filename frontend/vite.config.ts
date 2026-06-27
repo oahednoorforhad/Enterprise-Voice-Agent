@@ -9,7 +9,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: [],
     include: ['tests/**/*.test.{ts,tsx}'],
-    exclude: ['tests/**/*.test.tsx'],  // tsx handled by Playwright
+    exclude: ['tests/**/VoicePage.test.tsx'],  // Playwright tests
   },
   plugins: [react(), tsconfigPaths()],
   define: {

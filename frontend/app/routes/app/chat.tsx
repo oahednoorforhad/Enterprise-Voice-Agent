@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, useCallback, type Dispatch, type SetStateAction } from 'react'
 import { Send, Sparkles, AlertCircle } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
+import { Link, useParams } from '@tanstack/react-router'
 import ChatMessage, { type Message } from '../../components/ChatMessage'
 import ThinkingPanel, { type ThinkingStep } from '../../components/ThinkingPanel'
-import { mock } from '../../lib/api-client'
+import { api, mock } from '../../lib/api-client'
 import { useAppContext } from '../__root'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -60,6 +61,7 @@ async function applyEvent(
 export function AppChatPage() {
   const { setBackendOffline } = useAppContext()
   const queryClient = useQueryClient()
+  const { sessionId } = useParams({ strict: false }) as { sessionId?: string }
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -73,6 +75,8 @@ export function AppChatPage() {
   const [thinkingSteps, setThinkingSteps] = useState<ThinkingStep[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamError, setStreamError] = useState<string | null>(null)
+  const [initialLoading, setInitialLoading] = useState(!!sessionId)
+  const [sessionError, setSessionError] = useState<string | null>(null)
 
   const ticketCreatedRef = useRef(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -90,6 +94,37 @@ export function AppChatPage() {
     }
   }, [input])
 
+  useEffect(() => {
+    if (!sessionId) {
+      setInitialLoading(false)
+      return
+    }
+
+    api.getSessionMessages(sessionId).then((res) => {
+      setInitialLoading(false)
+      if (!res.success) {
+        setSessionError(res.error ?? 'Session not found')
+        return
+      }
+      if (res.data?.messages && res.data.messages.length > 0) {
+        const loadedMessages: Message[] = res.data.messages.map((m) => ({
+          id: m.id,
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+          timestamp: m.created_at,
+          tool_calls_made: [],
+          evidence: null,
+        }))
+        setMessages(loadedMessages)
+      }
+    }).catch((err) => {
+      setInitialLoading(false)
+      if (err && typeof err === 'object' && 'status' in err && err.status === 404) {
+        setSessionError('Session not found')
+      }
+    })
+  }, [sessionId])
+
   const handleSubmit = useCallback(async () => {
     const trimmed = input.trim()
     if (!trimmed || isStreaming) return
@@ -104,6 +139,7 @@ export function AppChatPage() {
     setInput('')
     setThinkingSteps([])
     setStreamError(null)
+    setSessionError(null)
     setIsStreaming(true)
     ticketCreatedRef.current = false
 
@@ -120,7 +156,11 @@ export function AppChatPage() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ message: trimmed, customer_id: mock.customerId }),
+        body: JSON.stringify({
+          message: trimmed,
+          customer_id: mock.customerId,
+          ...(sessionId ? { session_id: sessionId } : {}),
+        }),
         signal: abort.signal,
       })
 
@@ -162,6 +202,7 @@ export function AppChatPage() {
       if (ticketCreatedRef.current) {
         queryClient.invalidateQueries({ queryKey: ['ticketList'] })
       }
+      queryClient.invalidateQueries({ queryKey: ['sessions'] })
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
       setStreamError('Connection lost. The backend may be unreachable.')
@@ -177,7 +218,7 @@ export function AppChatPage() {
       }
       setMessages((prev) => [...prev, fallback])
     }
-  }, [input, isStreaming, setBackendOffline, queryClient])
+  }, [input, isStreaming, sessionId, setBackendOffline, queryClient])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -203,9 +244,15 @@ export function AppChatPage() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto scrollbar-thin space-y-4 pr-3 sm:pr-2 mb-4">
-        {messages.map((msg) => (
-          <ChatMessage key={msg.id} message={msg} />
-        ))}
+        {initialLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-pulse text-muted-slate">Loading messages...</div>
+          </div>
+        ) : (
+          messages.map((msg) => (
+            <ChatMessage key={msg.id} message={msg} />
+          ))
+        )}
 
         {/* Live thinking panel */}
         {isStreaming && (
@@ -216,7 +263,18 @@ export function AppChatPage() {
       </div>
 
       {/* Error banner */}
-      {streamError && (
+      {sessionError && (
+        <div className="mb-3 px-4 py-3 rounded-lg chip-red flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={16} />
+            <span>{sessionError}</span>
+          </div>
+          <Link to="/app/chat" className="text-xs font-medium underline hover:no-underline whitespace-nowrap">
+            New conversation
+          </Link>
+        </div>
+      )}
+      {!sessionError && streamError && (
         <div className="mb-3 px-4 py-2 rounded-lg chip-red flex items-center gap-2">
           <AlertCircle size={16} />
           {streamError}

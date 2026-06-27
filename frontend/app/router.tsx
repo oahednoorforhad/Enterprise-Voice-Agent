@@ -7,6 +7,8 @@ import { AppVoicePage } from './routes/app/voice'
 import { ScenariosPage } from './routes/scenarios'
 import { AuthCallbackPage } from './routes/auth_callback'
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 function requireAuth() {
   if (!localStorage.getItem('jwt')) {
     throw redirect({ to: '/' })
@@ -46,6 +48,24 @@ const appRoute = createRoute({
 const appChatRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/chat',
+  beforeLoad: async () => {
+    requireAuth()
+    const res = await fetch(`${API_BASE}/api/v1/chat/sessions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
+      },
+    })
+    const body = await res.json()
+    const sessionId: string = body.data?.session_id
+    throw redirect({ to: '/app/chat/$sessionId', params: { sessionId } })
+  },
+})
+
+const appChatSessionRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: '/chat/$sessionId',
   component: AppChatPage,
 })
 
@@ -59,7 +79,7 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   authCallbackRoute,
   scenariosRoute,
-  appRoute.addChildren([appChatRoute, appVoiceRoute]),
+  appRoute.addChildren([appChatRoute, appChatSessionRoute, appVoiceRoute]),
 ])
 
 const router = createRouter({ routeTree })

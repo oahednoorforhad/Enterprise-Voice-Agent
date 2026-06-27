@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '../lib/api-client'
 import {
   MessageSquare,
   Mic,
@@ -11,6 +13,7 @@ import {
   X,
   Sparkles,
   LogOut,
+  Plus,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -26,6 +29,19 @@ const navItems = [
 export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
   const location = useLocation()
   const navigate = useNavigate()
+
+  const { data: sessionData, isLoading, isError, refetch } = useQuery({
+    queryKey: ['sessions'],
+    queryFn: () => api.listSessions(),
+  })
+
+  const handleNewConversation = async () => {
+    const res = await api.createSession()
+    if (res.data?.session_id) {
+      navigate({ to: '/app/chat/$sessionId', params: { sessionId: res.data.session_id } })
+    }
+  }
+
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -85,6 +101,47 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
           )
         })}
       </nav>
+
+      {/* Conversations */}
+      {!collapsed && (
+        <div className="px-3 py-2 border-t border-hairline dark:border-white/5">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-micro font-semibold uppercase tracking-wider text-muted-slate dark:text-white/40">Conversations</h2>
+            <button onClick={handleNewConversation} className="flex items-center gap-1 text-micro text-coral-500 hover:text-coral-400 font-medium transition-colors">
+              <Plus size={14} /> New
+            </button>
+          </div>
+          {isLoading && (
+            <div className="space-y-2 py-2">
+              {[1,2,3].map(i => <div key={i} className="h-9 bg-surface-stone dark:bg-white/5 animate-pulse rounded-sm" />)}
+            </div>
+          )}
+          {isError && (
+            <div className="text-micro text-muted-slate py-2">
+              <p>Could not load conversations</p>
+              <button onClick={() => refetch()} className="text-coral-500 hover:text-coral-400 mt-1">Retry</button>
+            </div>
+          )}
+          {!isLoading && !isError && sessionData?.data?.sessions?.length === 0 && (
+            <p className="text-micro text-muted-slate py-2">No conversations yet</p>
+          )}
+          {sessionData?.data?.sessions?.map(s => {
+            const isActive = location.pathname === `/app/chat/${s.session_id}`
+            return (
+              <Link key={s.session_id} to="/app/chat/$sessionId" params={{ sessionId: s.session_id }}
+                className={`sidebar-link ${isActive ? 'active' : ''}`}>
+                <div className="min-w-0 flex-1">
+                  <p className="text-body-sm font-medium truncate">{s.title || 'Chat'}</p>
+                  <p className="text-micro text-muted-slate truncate">
+                    {new Date(s.started_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    {s.last_message_preview ? ` — ${s.last_message_preview}` : ''}
+                  </p>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      )}
 
       {/* Bottom actions */}
       <div className="px-3 py-4 border-t border-hairline dark:border-white/5 space-y-1">

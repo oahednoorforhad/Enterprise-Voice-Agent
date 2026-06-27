@@ -257,6 +257,42 @@ const mockChatResponse: ChatResponse = {
 
 // ---- Public API ------------------------------------------------------------
 
+// ---- Session types ---------------------------------------------------------
+
+export interface SessionSummary {
+  session_id: string
+  title: string | null
+  started_at: string
+  ended_at: string | null
+  message_count: number
+  last_message_preview: string | null
+}
+
+export interface SessionListResponse {
+  sessions: SessionSummary[]
+  total: number
+}
+
+export interface MessageItem {
+  id: string
+  role: string
+  content: string
+  created_at: string
+  tool_calls: Record<string, unknown> | null
+}
+
+export interface SessionMessagesResponse {
+  session_id: string
+  title: string | null
+  messages: MessageItem[]
+}
+
+export interface CreateSessionResponse {
+  session_id: string
+  title: string | null
+  started_at: string
+}
+
 // ---- Voice types -----------------------------------------------------------
 
 export interface CallSummaryResult {
@@ -313,6 +349,16 @@ export const api = {
 
   applyScenario: (scenarioId: string): Promise<ToolResult<{ scenario_id: string; active_scenario: string; customer_id: string }>> =>
     post('/api/v1/demo/apply-scenario', { scenario_id: scenarioId }),
+
+  // Session management
+  listSessions: (): Promise<ToolResult<SessionListResponse>> =>
+    get<SessionListResponse>('/api/v1/chat/sessions'),
+
+  getSessionMessages: (sessionId: string): Promise<ToolResult<SessionMessagesResponse>> =>
+    get<SessionMessagesResponse>(`/api/v1/chat/sessions/${encodeURIComponent(sessionId)}/messages`),
+
+  createSession: (): Promise<ToolResult<CreateSessionResponse>> =>
+    post<CreateSessionResponse>('/api/v1/chat/sessions', {}),
 }
 
 // ---- Mock data helpers -----------------------------------------------------

@@ -74,6 +74,161 @@ class DbConversationStore:
         conv_session.ended_at = func.now()
         await session.flush()
 
+    # ── Session queries ────────────────────────────────────────────────
+
+    async def list_sessions(
+        self,
+        session: AsyncSession,
+        customer_id: str,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> list[dict]:
+        """Return paginated sessions for *customer_id* with message stats.
+
+        Each dict contains:
+          - id, title, started_at, ended_at
+          - message_count (number of messages in the session)
+          - last_message_preview (content of the most recent message, if any)
+
+        Results are ordered by ``started_at DESC``.
+        """
+        uid = uuid.UUID(customer_id)
+
+        # Correlated subquery for message count per session
+        count_subq = (
+            select(func.count(ConversationMessage.id))
+            .where(ConversationMessage.session_id == ConversationSession.id)
+            .correlate(ConversationSession)
+            .scalar_subquery()
+        ).label("message_count")
+
+        # Correlated subquery for the most recent message content
+        last_msg_subq = (
+            select(ConversationMessage.content)
+            .where(ConversationMessage.session_id == ConversationSession.id)
+            .order_by(ConversationMessage.created_at.desc())
+            .limit(1)
+            .correlate(ConversationSession)
+            .scalar_subquery()
+        ).label("last_message_preview")
+
+        stmt = (
+            select(ConversationSession, count_subq, last_msg_subq)
+            .where(ConversationSession.customer_id == uid)
+            .order_by(ConversationSession.started_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        result = await session.execute(stmt)
+        rows = result.all()
+
+        output: list[dict] = []
+        for row in rows:
+            conv_session: ConversationSession = row[0]
+            output.append(
+                {
+                    "id": str(conv_session.id),
+                    "title": conv_session.title,
+                    "started_at": (
+                        conv_session.started_at.isoformat()
+                        if conv_session.started_at
+                        else None
+                    ),
+                    "ended_at": (
+                        conv_session.ended_at.isoformat()
+                        if conv_session.ended_at
+                        else None
+                    ),
+                    "message_count": row.message_count,
+                    "last_message_preview": row.last_message_preview,
+                }
+            )
+        return output
+
+    async def get_session_by_id(
+        self,
+        session: AsyncSession,
+        session_id: uuid.UUID,
+        customer_id: str,
+    ) -> ConversationSession | None:
+        """Return a single session by ID, verifying customer ownership.
+
+        Returns ``None`` if the session does not exist or does not belong to
+        *customer_id*.
+        """
+        uid = uuid.UUID(customer_id)
+        stmt = select(ConversationSession).where(
+            ConversationSession.id == session_id,
+            ConversationSession.customer_id == uid,
+        )
+        result = await session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_session_messages(
+        self,
+        session: AsyncSession,
+        session_id: uuid.UUID,
+        customer_id: str,
+    ) -> list[ConversationMessage]:
+        """Return all messages for a session ordered chronologically.
+
+        Verifies session ownership via :meth:`get_session_by_id`.  Returns
+        an empty list if the session is not found or does not belong to the
+        customer.
+        """
+        conv_session = await self.get_session_by_id(
+            session, session_id, customer_id
+        )
+        if conv_session is None:
+            return []
+
+        stmt = (
+            select(ConversationMessage)
+            .where(ConversationMessage.session_id == conv_session.id)
+            .order_by(ConversationMessage.created_at.asc())
+        )
+        result = await session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def create_new_session(
+        self,
+        session: AsyncSession,
+        customer_id: str,
+    ) -> ConversationSession:
+        """Close any active session for *customer_id* and create a new one.
+
+        Any session with ``session_status == 'active'`` and ``ended_at IS NULL``
+        is marked as ``closed``.  A fresh session with ``session_status='active'``
+        is then created and returned.
+
+        Wraps both steps in a transaction (caller owns the outer transaction).
+        """
+        uid = uuid.UUID(customer_id)
+
+        # Close any currently active session(s)
+        close_stmt = select(ConversationSession).where(
+            ConversationSession.customer_id == uid,
+            ConversationSession.session_status == "active",
+            ConversationSession.ended_at.is_(None),
+        )
+        result = await session.execute(close_stmt)
+        active_sessions = result.scalars().all()
+        for s in active_sessions:
+            s.session_status = "closed"
+            s.ended_at = func.now()
+        await session.flush()
+
+        # Create the new active session
+        new_session = ConversationSession(
+            customer_id=uid,
+            session_status="active",
+            started_at=datetime.now(UTC),
+            language="en",
+        )
+        session.add(new_session)
+        await session.flush()
+        return new_session
+
     # ── Turn management ────────────────────────────────────────────────
 
     async def add_turn(
@@ -83,35 +238,64 @@ class DbConversationStore:
         user_message: str,
         assistant_response: str,
         tool_calls_made: list[str] | None = None,
+        session_id: uuid.UUID | None = None,
     ) -> None:
         """Persist one user→assistant turn.
 
-        If the customer's active session has been idle for more than 30
-        minutes the old session is closed and a new one is started before
-        storing the turn.
+        When *session_id* is provided the turn is stored in that specific
+        session (ownership verified).  When *session_id* is ``None`` the
+        customer's active session is used, with a 30‑minute inactivity
+        timeout that starts a fresh session if exceeded.
+
+        If the session has no title yet and this is its first message, a
+        title is auto‑generated from the first ~100 characters of the user
+        message (or a date‑based fallback for very short messages).
         """
-        conv_session = await self.get_or_create_session(session, customer_id)
+        uid = uuid.UUID(customer_id)
 
-        # ── Inactivity check ──────────────────────────────────────────
-        # Look up the most recent message in this session; if it was
-        # created more than 30 minutes ago, close the session and open
-        # a fresh one for the new turn.
-        last_msg_stmt = (
-            select(ConversationMessage)
-            .where(ConversationMessage.session_id == conv_session.id)
-            .order_by(ConversationMessage.created_at.desc())
-            .limit(1)
-        )
-        result = await session.execute(last_msg_stmt)
-        last_msg = result.scalar_one_or_none()
-
-        if last_msg is not None:
-            age = datetime.now(UTC) - last_msg.created_at
-            if age > timedelta(minutes=30):
-                await self._close_session(session, conv_session)
-                conv_session = await self.get_or_create_session(
-                    session, customer_id
+        # ── Resolve session ───────────────────────────────────────────
+        if session_id is not None:
+            conv_session = await self.get_session_by_id(
+                session, session_id, customer_id
+            )
+            # If session is closed, auto-create a new session
+            if conv_session is not None and conv_session.session_status == "closed":
+                conv_session = await self.create_new_session(session, customer_id)
+            if conv_session is None:
+                raise ValueError(
+                    f"Session {session_id} not found or does not belong "
+                    f"to customer {customer_id}"
                 )
+        else:
+            conv_session = await self.get_or_create_session(
+                session, customer_id
+            )
+
+            # ── Inactivity check ──────────────────────────────────────
+            last_msg_stmt = (
+                select(ConversationMessage)
+                .where(ConversationMessage.session_id == conv_session.id)
+                .order_by(ConversationMessage.created_at.desc())
+                .limit(1)
+            )
+            result = await session.execute(last_msg_stmt)
+            last_msg = result.scalar_one_or_none()
+
+            if last_msg is not None:
+                age = datetime.now(UTC) - last_msg.created_at
+                if age > timedelta(minutes=30):
+                    await self._close_session(session, conv_session)
+                    conv_session = await self.get_or_create_session(
+                        session, customer_id
+                    )
+
+        # ── Check existing message count (for title gen) ──────────────
+        count_stmt = select(func.count(ConversationMessage.id)).where(
+            ConversationMessage.session_id == conv_session.id
+        )
+        result = await session.execute(count_stmt)
+        existing_msg_count = result.scalar()
+        is_first_message = existing_msg_count == 0
 
         # ── Store user message ────────────────────────────────────────
         session.add(
@@ -135,6 +319,16 @@ class DbConversationStore:
                 tool_calls=tool_calls_dict,
             )
         )
+
+        # ── Auto‑generate title on first message ──────────────────────
+        if is_first_message and conv_session.title is None:
+            if len(user_message) >= 10:
+                conv_session.title = user_message[:100]
+            else:
+                conv_session.title = (
+                    f"Chat from "
+                    f"{conv_session.started_at.strftime('%B %d, %Y')}"
+                )
 
         await session.flush()
 
