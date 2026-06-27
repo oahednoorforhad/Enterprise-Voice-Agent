@@ -21,3 +21,8 @@ class RateLimitError(DomainException):
 class TicketCreateError(DomainException):
     """Raised when ticket creation fails validation or DB constraints."""
     pass
+
+
+class InvalidIntentLabelError(Exception):
+    """Raised when the orchestrator receives an unknown intent label from the LLM."""
+    pass
