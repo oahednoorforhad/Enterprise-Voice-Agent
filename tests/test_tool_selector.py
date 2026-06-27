@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import pytest
 
+from app.core.exceptions import InvalidIntentLabelError
 from app.orchestrator.tool_selector import ToolSelector
 from app.schemas.reasoning import IntentAnalysisResult, ToolSelectionPlan
 
@@ -311,6 +312,52 @@ class TestUnknownToolFiltering:
         )
         plan = await selector.select(intent)
         assert plan.selected_tools == []
+
+
+class TestInvalidIntentLabel:
+    """Unknown intent label raises ``InvalidIntentLabelError``."""
+
+    @pytest.mark.asyncio
+    async def test_unknown_label_raises_invalid_intent_label_error(self) -> None:
+        """A label that is not in the known set should raise."""
+        selector = ToolSelector(max_calls=10)
+        intent = IntentAnalysisResult(
+            intent_label="unknown_intent",
+            confidence=0.80,
+            candidate_tools=["get_billing_history"],
+            candidate_sources=["billing_records"],
+        )
+        with pytest.raises(
+            InvalidIntentLabelError,
+            match="Unknown intent label: unknown_intent",
+        ):
+            await selector.select(intent)
+
+    @pytest.mark.asyncio
+    async def test_nonexistent_label_raises_error(self) -> None:
+        """Completely made-up label should also raise."""
+        selector = ToolSelector(max_calls=10)
+        intent = IntentAnalysisResult(
+            intent_label="this_does_not_exist_at_all",
+            confidence=0.99,
+            candidate_tools=[],
+            candidate_sources=[],
+        )
+        with pytest.raises(InvalidIntentLabelError):
+            await selector.select(intent)
+
+    @pytest.mark.asyncio
+    async def test_known_label_does_not_raise(self) -> None:
+        """Known labels should not raise ``InvalidIntentLabelError``."""
+        selector = ToolSelector(max_calls=10)
+        intent = IntentAnalysisResult(
+            intent_label="billing_inquiry",
+            confidence=0.92,
+            candidate_tools=["get_billing_history"],
+            candidate_sources=["billing_records"],
+        )
+        plan = await selector.select(intent)
+        assert plan.selected_tools == ["get_billing_history"]
 
 
 # ── Defaults and overrides ────────────────────────────────────────────────
