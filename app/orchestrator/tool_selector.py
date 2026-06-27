@@ -10,6 +10,7 @@ pure policy function.
 from __future__ import annotations
 
 from app.config.settings import get_settings
+from app.core.exceptions import InvalidIntentLabelError
 from app.schemas.reasoning import IntentAnalysisResult, ToolSelectionPlan
 
 # ── Known tool names (must match app/api/tools_router.py tool families) ──
@@ -121,6 +122,12 @@ class ToolSelector:
                 max_tool_calls=self._max_calls,
             )
 
+        # ── Validate intent label is known ──────────────────────────────
+        if intent.intent_label not in _INTENT_TOOL_ORDER:
+            raise InvalidIntentLabelError(
+                f"Unknown intent label: {intent.intent_label}"
+            )
+
         # ── Empty candidate list shortcut ───────────────────────────────
         if not intent.candidate_tools:
             return ToolSelectionPlan(
@@ -161,6 +168,7 @@ class ToolSelector:
         in the global ``KNOWN_TOOLS`` set are silently dropped.
         """
         priority = _INTENT_TOOL_ORDER.get(intent_label, [])
+        assert priority, f"Unknown intent_label: {intent_label}"
         position = {name: idx for idx, name in enumerate(priority)}
         # Keep only tools that are in the priority list AND globally known.
         valid = [t for t in tools if t in position and t in KNOWN_TOOLS]
