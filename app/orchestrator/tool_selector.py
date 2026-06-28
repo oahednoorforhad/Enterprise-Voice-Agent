@@ -25,6 +25,7 @@ KNOWN_TOOLS: frozenset[str] = frozenset({
     "search_documentation",
     "search_policies",
     "get_usage_analytics",
+    "get_session_history",
 })
 
 # ── Intent-specific ordering rules ────────────────────────────────────────
@@ -55,6 +56,9 @@ _INTENT_TOOL_ORDER: dict[str, list[str]] = {
     "analytics_query": [
         "get_usage_analytics",
     ],
+    "conversation_history_query": [
+        "get_session_history",
+    ],
 }
 
 # Per-intent tool caps (stricter than the global max_tool_calls_per_turn).
@@ -64,6 +68,7 @@ _INTENT_MAX_TOOLS: dict[str, int] = {
     "knowledge_query": 2,
     "account_query": 2,
     "analytics_query": 1,
+    "conversation_history_query": 1,
 }
 
 _LOW_CONFIDENCE_THRESHOLD: float = 0.3

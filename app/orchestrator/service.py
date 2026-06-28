@@ -262,9 +262,10 @@ class EvidenceSufficiencyChecker:
     REQUIRED_SOURCES: dict[str, set[str]] = {
         "billing_inquiry": {"billing_records"},
         "account_query": {"customer_profile", "subscription"},
-        "ticket_inquiry": {"support_tickets"},
-        "policy_inquiry": {"policies", "documentation"},
-        "usage_inquiry": {"usage_analytics"},
+        "support_ticket": {"support_tickets"},
+        "knowledge_query": {"policies", "documentation"},
+        "analytics_query": {"usage_analytics"},
+        "conversation_history_query": {"conversation_history"},
     }
 
     @staticmethod
@@ -717,9 +718,10 @@ class OrchestratorService:
 _INTENT_LABELS: dict[str, str] = {
     "billing_inquiry": "Analyzing billing inquiry…",
     "account_query": "Looking up your account…",
-    "ticket_inquiry": "Checking support tickets…",
-    "policy_inquiry": "Searching policy documents…",
-    "usage_inquiry": "Retrieving usage analytics…",
+    "support_ticket": "Checking support tickets…",
+    "knowledge_query": "Searching policy documents…",
+    "analytics_query": "Retrieving usage analytics…",
+    "conversation_history_query": "Looking up conversation history…",
     "greeting": "Processing greeting…",
     "other": "Analyzing your request…",
 }
