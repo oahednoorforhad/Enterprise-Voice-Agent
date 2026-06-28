@@ -616,6 +616,7 @@ class OrchestratorService:
 
     # ── Public streaming turn loop ─────────────────────────────────────────
 
+    @observe()
     async def process_turn_streaming(
         self,
         message: str,
