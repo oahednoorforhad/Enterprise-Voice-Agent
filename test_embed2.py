@@ -1,7 +1,7 @@
 """Check OpenRouter embedding model pricing."""
-import httpx, asyncio
+import httpx, asyncio, os
 
-KEY = "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"
+KEY = os.environ["OPENROUTER_API_KEY"]
 
 async def main():
     async with httpx.AsyncClient() as c:

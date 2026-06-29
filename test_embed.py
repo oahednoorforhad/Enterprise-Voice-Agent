@@ -1,7 +1,7 @@
 """Test available embedding models and their dimensions."""
-import httpx, asyncio
+import httpx, asyncio, os
 
-KEY = "AQ.Ab8RN6Jwl5ql-NYMgVVquVE4Hx7FvusIWR7FkX43iQrWOX5PSg"
+KEY = os.environ["GOOGLE_API_KEY"]
 BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 async def test_google():
@@ -24,7 +24,7 @@ async def test_google():
                     print(f"  {m} (dim={dim}): FAIL {err}")
 
 async def test_openrouter():
-    key = "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"
+    key = os.environ["OPENROUTER_API_KEY"]
     models = [
         "nomic-ai/nomic-embed-text-v1.5",
         "text-embedding-3-small",
