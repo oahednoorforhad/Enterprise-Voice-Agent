@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: eva
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: MOCK_AUTH_ENABLED
+        value: "false"
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash
+      - key: GEMINI_AUDIO_MODEL
+        value: gemini-2.5-flash-native-audio-dialog
+      - key: DB_POOL_SIZE
+        value: "5"
+      - key: DB_MAX_OVERFLOW
+        value: "0"
+      - key: CORS_ORIGINS
+        value: '["https://eva.oahed.live"]'
+      - key: FRONTEND_URL
+        value: https://eva.oahed.live
+      - key: GOOGLE_REDIRECT_URI
+        value: https://eva.oahed.live/api/v1/auth/callback/google
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_SECRET_KEY
+        generateValue: true
+      # Set in the Render dashboard (prompted on first Blueprint sync)
+      - key: DATABASE_URL
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: SENTRY_DSN
+        sync: false

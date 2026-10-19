@@ -57,9 +57,9 @@ export interface UseVoiceSessionReturn {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
-const WS_BASE = API_BASE.replace(/^http/, 'ws')
+const WS_BASE = (API_BASE || location.origin).replace(/^http/, 'ws')
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
 

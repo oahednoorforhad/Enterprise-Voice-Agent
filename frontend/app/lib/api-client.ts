@@ -3,7 +3,7 @@
 // All endpoints return ToolResult<T> = { success: boolean, data: T | null, error: string | null }
 // ---------------------------------------------------------------------------
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 // ---- Types -----------------------------------------------------------------
 
