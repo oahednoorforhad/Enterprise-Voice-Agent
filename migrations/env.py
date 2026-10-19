@@ -44,7 +44,9 @@ def run_migrations_offline() -> None:
 
     """
     settings = get_settings()
-    url = settings.database_url.replace("+asyncpg", "+psycopg")
+    url = settings.database_url.replace("+asyncpg", "+psycopg").replace(
+        "ssl=require", "sslmode=require"  # asyncpg spells it ssl=, libpq sslmode=
+    )
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -73,10 +75,15 @@ def run_migrations_online() -> None:
     """
 
     settings = get_settings()
-    sync_url = settings.database_url.replace("+asyncpg", "+psycopg")
+    sync_url = settings.database_url.replace("+asyncpg", "+psycopg").replace(
+        "ssl=require", "sslmode=require"  # asyncpg spells it ssl=, libpq sslmode=
+    )
     connectable = create_engine(sync_url, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
+        # Fresh databases (e.g. Neon) have no vector type yet; register_vector needs it
+        connection.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS vector")
+        connection.commit()
         # register_vector needs the raw psycopg connection (via the pool fairy), not the SQLAlchemy wrapper
         pgvector.psycopg.register_vector(connection.connection.driver_connection)
         do_run_migrations(connection)

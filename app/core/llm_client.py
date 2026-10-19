@@ -11,11 +11,14 @@ from typing import Any, TypeVar
 
 from google.genai import Client as GenAiClient
 from google.genai import errors as sdk_errors
-from google.genai.types import GenerateContentConfig
+from google.genai.types import GenerateContentConfig, HttpOptions, HttpRetryOptions
+import structlog
 from langfuse import observe
 from pydantic import BaseModel
 
 from app.config.settings import get_settings
+
+logger = structlog.get_logger()
 
 # ── Exception ────────────────────────────────────────────────────────────
 
@@ -35,6 +38,14 @@ class LLMClientError(Exception):
 # ── Type variable for structured output ──────────────────────────────────
 
 T = TypeVar("T", bound=BaseModel)
+
+# Gemini returns 429/5xx under load: one quick SDK retry per model, then fall back
+_OVERLOAD_CODES = [429, 500, 502, 503, 504]
+_HTTP_OPTIONS = HttpOptions(
+    retry_options=HttpRetryOptions(attempts=2, http_status_codes=_OVERLOAD_CODES)
+)
+# Also fall back (without retrying) when a model has been retired
+_FALLBACK_CODES = {404, *_OVERLOAD_CODES}
 
 # ── Client ───────────────────────────────────────────────────────────────
 
@@ -95,6 +106,9 @@ class LLMClient:
         self._model_name: str = (
             model_name if model_name is not None else settings.gemini_model
         )
+        self._models: list[str] = [self._model_name] + [
+            m for m in settings.gemini_fallback_models if m != self._model_name
+        ]
 
         if client is not None:
             self._client: GenAiClient = client
@@ -103,6 +117,7 @@ class LLMClient:
                 vertexai=True,
                 project=settings.gcp_project,
                 location=settings.gcp_location,
+                http_options=_HTTP_OPTIONS,
             )
         else:
             resolved_key: str = api_key if api_key is not None else settings.google_api_key
@@ -111,7 +126,7 @@ class LLMClient:
                     "No Google API key available. Set GOOGLE_API_KEY in your .env "
                     "or pass api_key to the constructor."
                 )
-            self._client = GenAiClient(api_key=resolved_key)
+            self._client = GenAiClient(api_key=resolved_key, http_options=_HTTP_OPTIONS)
 
     @property
     def effective_audio_model(self) -> str:
@@ -120,6 +135,21 @@ class LLMClient:
         if self._vertexai_enabled:
             return settings.gemini_audio_model_vertex
         return settings.gemini_audio_model
+
+    async def _generate_with_fallback(self, prompt: str, config: GenerateContentConfig) -> Any:
+        """Call each model in ``self._models`` until one isn't overloaded."""
+        for i, model in enumerate(self._models):
+            try:
+                return await self._client.aio.models.generate_content(
+                    model=model, contents=prompt, config=config
+                )
+            except sdk_errors.APIError as exc:
+                if exc.code not in _FALLBACK_CODES or i == len(self._models) - 1:
+                    raise
+                logger.warning(
+                    "gemini_model_fallback", failed=model, code=exc.code, next=self._models[i + 1]
+                )
+        raise AssertionError("unreachable")  # loop always returns or raises
 
     # ── Public API ───────────────────────────────────────────────────────
 
@@ -152,11 +182,7 @@ class LLMClient:
             config.system_instruction = system_instruction
 
         try:
-            response = await self._client.aio.models.generate_content(
-                model=self._model_name,
-                contents=prompt,
-                config=config,
-            )
+            response = await self._generate_with_fallback(prompt, config)
         except (
             sdk_errors.APIError,
             sdk_errors.ClientError,
@@ -217,11 +243,7 @@ class LLMClient:
             config.system_instruction = system_instruction
 
         try:
-            response = await self._client.aio.models.generate_content(
-                model=self._model_name,
-                contents=prompt,
-                config=config,
-            )
+            response = await self._generate_with_fallback(prompt, config)
         except (
             sdk_errors.APIError,
             sdk_errors.ClientError,

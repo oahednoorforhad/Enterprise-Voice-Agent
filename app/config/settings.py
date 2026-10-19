@@ -49,7 +49,9 @@ class Settings(BaseSettings):
 
     # LLM / Voice
     google_api_key: str = ""
-    gemini_model: str = "gemini-2.0-flash"
+    gemini_model: str = "gemini-3.1-flash-lite"
+    # Tried in order when gemini_model is overloaded (429/5xx) or retired (404)
+    gemini_fallback_models: list[str] = ["gemini-3.5-flash-lite", "gemini-3.5-flash"]
     # Gemini Live / Native Audio model (Google AI)
     gemini_audio_model: str = "gemini-2.5-flash-native-audio-preview-12-2025"
     # Vertex AI support (production SLA alternative to Google AI key)

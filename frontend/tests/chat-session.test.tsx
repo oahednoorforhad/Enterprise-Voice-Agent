@@ -63,6 +63,7 @@ vi.mock('@tanstack/react-query', () => ({
 // ---- Mock api client --------------------------------------------------------
 
 vi.mock('../app/lib/api-client', () => ({
+  API_BASE: 'http://localhost:8000',
   api: {
     getSessionMessages: (...args: unknown[]) => mockGetSessionMessages(...args),
   },

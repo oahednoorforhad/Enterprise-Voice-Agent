@@ -6,8 +6,8 @@ import { AppChatPage } from './routes/app/chat'
 import { AppVoicePage } from './routes/app/voice'
 import { ScenariosPage } from './routes/scenarios'
 import { AuthCallbackPage } from './routes/auth_callback'
+import { API_BASE } from './lib/api-client'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 function requireAuth() {
   if (!localStorage.getItem('jwt')) {

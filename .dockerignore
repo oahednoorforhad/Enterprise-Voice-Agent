@@ -19,3 +19,13 @@ dist/
 build/
 # data/ is needed for scenarios/*.json (demo apply-scenario) — see Dockerfile
 .puku/
+**/node_modules/
+**/dist/
+.omo/
+.claude/
+marketing/
+tests/
+docs/
+*.log
+*.txt
+.coverage

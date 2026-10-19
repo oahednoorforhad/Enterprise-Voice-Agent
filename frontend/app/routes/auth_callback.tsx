@@ -30,7 +30,7 @@ export function AuthCallbackPage() {
         } else {
           navigate({ to: '/app/chat', replace: true })
         }
-      })
+      }).catch(() => navigate({ to: '/app/chat', replace: true }))
     } catch {
       navigate({ to: '/app/chat', replace: true })
     }

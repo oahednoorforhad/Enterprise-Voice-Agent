@@ -4,10 +4,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from '@tanstack/react-router'
 import ChatMessage, { type Message } from '../../components/ChatMessage'
 import ThinkingPanel, { type ThinkingStep } from '../../components/ThinkingPanel'
-import { api, mock } from '../../lib/api-client'
+import { api, mock, API_BASE } from '../../lib/api-client'
 import { useAppContext } from '../__root'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 async function applyEvent(
   event: Record<string, unknown>,

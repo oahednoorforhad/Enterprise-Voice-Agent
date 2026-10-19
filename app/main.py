@@ -8,15 +8,17 @@ import logging
 import time
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 import sentry_sdk
 import structlog
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.admin_router import admin_router
 from app.api.auth_router import auth_router
@@ -29,6 +31,8 @@ from app.core.exceptions import DomainException
 from app.db import dispose_engine, get_db_session
 from app.observability import init_langfuse, shutdown_langfuse
 from app.schemas.tools import ToolResult
+
+STATIC_DIR = Path("static")
 
 
 @asynccontextmanager
@@ -196,6 +200,17 @@ def create_app() -> FastAPI:
     app.include_router(voice_router)
     app.include_router(admin_router)
     app.include_router(demo_router)
+
+    # ── SPA (production image only; registered last so API routes win) ─
+    if STATIC_DIR.is_dir():
+        app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
+
+        @app.get("/{path:path}", include_in_schema=False)
+        async def spa(path: str) -> FileResponse:
+            f = (STATIC_DIR / path).resolve()
+            if path and f.is_file() and f.is_relative_to(STATIC_DIR.resolve()):
+                return FileResponse(f)
+            return FileResponse(STATIC_DIR / "index.html")
 
     return app
 
