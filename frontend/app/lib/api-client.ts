@@ -134,7 +134,7 @@ async function request<T>(
   body?: unknown,
   params?: Record<string, string | undefined>,
 ): Promise<ToolResult<T>> {
-  const url = new URL(`${API_BASE}${path}`)
+  const url = new URL(`${API_BASE}${path}`, window.location.origin)
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined && v !== null) url.searchParams.set(k, v)
