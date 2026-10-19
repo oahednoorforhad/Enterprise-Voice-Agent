@@ -22,8 +22,11 @@ async def get_embedding(text: str) -> list[float]:
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             url,
-            params={"key": settings.google_api_key},
-            headers={"Content-Type": "application/json"},
+            # Header, not ?key= — httpx logs request URLs at INFO
+            headers={
+                "Content-Type": "application/json",
+                "x-goog-api-key": settings.google_api_key,
+            },
             json={
                 "model": "models/gemini-embedding-2",
                 "content": {"parts": [{"text": text}]},
