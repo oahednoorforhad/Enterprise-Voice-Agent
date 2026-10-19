@@ -47,3 +47,10 @@ frontend/app.config.timestamp_*.js
 # Case study / deliverables (unrelated artifacts)
 .claude/
 generate_styles.py
+# Local scratch / debug output
+diff.txt
+service_log.txt
+turn_analysis.txt
+request_body.json
+_check_*.py
+test_embed*.py
