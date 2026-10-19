@@ -14,9 +14,9 @@ services:
       - key: MOCK_AUTH_ENABLED
         value: "false"
       - key: GEMINI_MODEL
-        value: gemini-2.0-flash
+        value: gemini-3.1-flash-lite
       - key: GEMINI_AUDIO_MODEL
-        value: gemini-2.5-flash-native-audio-dialog
+        value: gemini-2.5-flash-native-audio-preview-12-2025
       - key: DB_POOL_SIZE
         value: "5"
       - key: DB_MAX_OVERFLOW
