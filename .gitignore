@@ -54,3 +54,6 @@ turn_analysis.txt
 request_body.json
 _check_*.py
 test_embed*.py
+
+# Promo video project (kept local)
+marketing/
