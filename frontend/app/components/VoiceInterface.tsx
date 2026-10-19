@@ -8,7 +8,7 @@
 import { useCallback } from 'react'
 import { Mic, MicOff, Phone, PhoneOff, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { useVoiceSession, type VoiceState, type TranscriptLine } from '../hooks/useVoiceSession'
-import { api } from '../lib/api-client'
+import { api, API_BASE } from '../lib/api-client'
 import { useQuery } from '@tanstack/react-query'
 
 const CUSTOMER_ID = 'c63d2f89-9aa3-4157-8205-a7d6cfc23207'
@@ -143,8 +143,7 @@ function CallSummaryPanel({ sessionId }: { sessionId: string }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['voice-summary', sessionId],
     queryFn: async () => {
-      const base = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-      const res = await fetch(`${base}/api/v1/voice/summary/${sessionId}`)
+      const res = await fetch(`${API_BASE}/api/v1/voice/summary/${sessionId}`)
       if (!res.ok) throw new Error('Summary not ready')
       return res.json()
     },

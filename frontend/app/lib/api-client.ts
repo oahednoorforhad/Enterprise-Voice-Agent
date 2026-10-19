@@ -3,7 +3,8 @@
 // All endpoints return ToolResult<T> = { success: boolean, data: T | null, error: string | null }
 // ---------------------------------------------------------------------------
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+// Empty VITE_API_URL (production image) = same origin; unset = local backend
+export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 // ---- Types -----------------------------------------------------------------
 

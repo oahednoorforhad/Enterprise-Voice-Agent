@@ -22,6 +22,7 @@ import {
   schedulePlayback,
   type ResamplerHandle,
 } from '../lib/audio-worklet'
+import { API_BASE } from '../lib/api-client'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -57,7 +58,6 @@ export interface UseVoiceSessionReturn {
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 const WS_BASE = (API_BASE || location.origin).replace(/^http/, 'ws')
 
