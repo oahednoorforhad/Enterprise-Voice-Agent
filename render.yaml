@@ -3,6 +3,7 @@ services:
     name: eva
     runtime: docker
     plan: free
+    region: singapore  # same region as Neon (AWS ap-southeast-1)
     healthCheckPath: /health
     autoDeploy: true
     envVars:
