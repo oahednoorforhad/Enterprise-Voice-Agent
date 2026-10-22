@@ -1,16 +1,16 @@
 import { useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Sparkles, Zap, Shield, Headphones } from 'lucide-react'
-import { API_BASE } from '../lib/api-client'
+import { API_BASE, ensureSession } from '../lib/api-client'
 
 
 export function LandingPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (localStorage.getItem('jwt')) {
-      navigate({ to: '/app/chat', replace: true })
-    }
+    void ensureSession().then((ok) => {
+      if (ok) navigate({ to: '/app/chat', replace: true })
+    })
   }, [navigate])
 
   return (

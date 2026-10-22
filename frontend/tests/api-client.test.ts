@@ -154,7 +154,7 @@ describe('api.getSessionMessages', () => {
     globalThis.fetch = fetchSpy
 
     await api.getSessionMessages('sess-001')
-    const callUrl = fetchSpy.mock.calls[0][0] as string
+    const callUrl = fetchSpy.mock.calls.at(-1)![0] as string  // last call; a token refresh may precede it
     expect(callUrl).toContain('/api/v1/chat/sessions/sess-001/messages')
   })
 
@@ -229,8 +229,8 @@ describe('api.createSession', () => {
     globalThis.fetch = fetchSpy
 
     await api.createSession()
-    const callUrl = fetchSpy.mock.calls[0][0] as string
-    const callMethod = fetchSpy.mock.calls[0][1]?.method ?? 'unknown'
+    const callUrl = fetchSpy.mock.calls.at(-1)![0] as string  // last call; a token refresh may precede it
+    const callMethod = fetchSpy.mock.calls.at(-1)![1]?.method ?? 'unknown'
     expect(callUrl).toContain('/api/v1/chat/sessions')
     expect(callMethod).toBe('POST')
   })

@@ -2,6 +2,7 @@ import { createRootRoute, Outlet, useLocation } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState, useEffect, createContext, useContext, useCallback } from 'react'
 import Sidebar from '../components/Sidebar'
+import { hasSession } from '../lib/api-client'
 
 // ---- Context for sharing backend offline state across routes ----------------
 
@@ -53,7 +54,7 @@ function RootLayout() {
 
   const [backendOffline, setBackendOffline] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const isLoggedIn = typeof localStorage !== 'undefined' && !!localStorage.getItem('jwt')
+  const isLoggedIn = hasSession()
   const location = useLocation()
   const hideSidebar = location.pathname === '/' || location.pathname === '/scenarios'
 

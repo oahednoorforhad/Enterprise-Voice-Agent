@@ -6,11 +6,11 @@ import { AppChatPage } from './routes/app/chat'
 import { AppVoicePage } from './routes/app/voice'
 import { ScenariosPage } from './routes/scenarios'
 import { AuthCallbackPage } from './routes/auth_callback'
-import { API_BASE } from './lib/api-client'
+import { API_BASE, authFetch, ensureSession } from './lib/api-client'
 
 
-function requireAuth() {
-  if (!localStorage.getItem('jwt')) {
+async function requireAuth() {
+  if (!(await ensureSession())) {
     throw redirect({ to: '/' })
   }
 }
@@ -49,13 +49,10 @@ const appChatRoute = createRoute({
   getParentRoute: () => appRoute,
   path: '/chat',
   beforeLoad: async () => {
-    requireAuth()
-    const res = await fetch(`${API_BASE}/api/v1/chat/sessions`, {
+    await requireAuth()
+    const res = await authFetch(`${API_BASE}/api/v1/chat/sessions`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
     })
     const body = await res.json()
     const sessionId: string = body.data?.session_id
