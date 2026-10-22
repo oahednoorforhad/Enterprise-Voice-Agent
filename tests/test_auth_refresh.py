@@ -60,3 +60,10 @@ def test_logout_clears_cookie():
     assert res.status_code == 204
     assert 'eva_refresh=""' in res.headers["set-cookie"]
     assert "Max-Age=0" in res.headers["set-cookie"]
+
+
+def test_failed_refresh_clears_the_cookie():
+    res = _refresh("garbage")
+    assert res.status_code == 401
+    assert 'eva_refresh=""' in res.headers["set-cookie"]
+    assert "Max-Age=0" in res.headers["set-cookie"]

@@ -9,7 +9,7 @@ Mounted at ``/api/v1/auth``.  Provides:
 
 from authlib.integrations.starlette_client import OAuth
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
@@ -143,12 +143,12 @@ async def callback_google(
     return response
 
 
-@auth_router.post("/refresh")
+@auth_router.post("/refresh", response_model=None)
 async def refresh(
     request: Request,
     response: Response,
     eva_refresh: str | None = Cookie(default=None),
-) -> dict:
+) -> dict | JSONResponse:
     """Exchange the refresh cookie for a new access token (and rotate the cookie)."""
     # CSRF: SameSite=Lax already blocks cross-site POSTs; also reject foreign Origins
     origin = request.headers.get("origin")
@@ -158,8 +158,11 @@ async def refresh(
     try:
         payload = verify_token(eva_refresh or "", expected_type="refresh")
     except Exception:
-        response.delete_cookie(REFRESH_COOKIE, path=_COOKIE_PATH)
-        raise HTTPException(status_code=401, detail="Session expired") from None
+        # Return (not raise) so the cookie deletion reaches the browser; headers
+        # set on the injected Response are dropped when an HTTPException is raised
+        expired = JSONResponse(status_code=401, content={"detail": "Session expired"})
+        expired.delete_cookie(REFRESH_COOKIE, path=_COOKIE_PATH)
+        return expired
 
     claims = {"sub": payload["sub"], "email": payload.get("email")}
     _set_refresh_cookie(response, claims)

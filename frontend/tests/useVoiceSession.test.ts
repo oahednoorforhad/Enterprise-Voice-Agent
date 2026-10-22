@@ -11,6 +11,12 @@ import { installMockWebSocket, restoreMockWebSocket } from './__mocks__/websocke
 import { useVoiceSession } from '../app/hooks/useVoiceSession'
 
 // Stub AudioContext and AudioWorklet so they don't require a real browser
+// Signed-in session: the hook fetches a fresh access token before connecting
+vi.mock('../app/lib/api-client', () => ({
+  API_BASE: 'http://localhost:8000',
+  refreshAccessToken: () => Promise.resolve('test-access-token'),
+}))
+
 vi.mock('../app/lib/audio-worklet', () => ({
   createResampler: vi.fn().mockResolvedValue({ stop: vi.fn() }),
   decodePCMFromBase64: vi.fn().mockReturnValue(new Float32Array(0)),

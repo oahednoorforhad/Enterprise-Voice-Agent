@@ -229,12 +229,18 @@ export function useVoiceSession(): UseVoiceSessionReturn {
     setSessionId(null)
     setError(null)
 
+    // Fresh 15-min token: the WS URL can end up in logs, so keep its lifetime short
+    const token = await refreshAccessToken()
+    if (!token) {
+      setError('Your session has expired. Please sign in again.')
+      updateState('error')
+      return
+    }
+
     // Open a fresh playback context (cursor starts at 0 implicitly).
     playbackCtxRef.current = new AudioContext({ sampleRate: 24_000 })
 
-    // Fresh 15-min token: the WS URL can end up in logs, so keep its lifetime short
-    const token = await refreshAccessToken()
-    const wsUrl = `${WS_BASE}/api/v1/voice/stream?customer_id=${encodeURIComponent(customerId)}&token=${encodeURIComponent(token ?? '')}`
+    const wsUrl = `${WS_BASE}/api/v1/voice/stream?customer_id=${encodeURIComponent(customerId)}&token=${encodeURIComponent(token)}`
     const ws = new WebSocket(wsUrl)
     wsRef.current = ws
 

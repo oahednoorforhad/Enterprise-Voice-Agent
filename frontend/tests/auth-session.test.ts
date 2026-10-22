@@ -72,3 +72,26 @@ describe('authFetch', () => {
     expect(hasSession()).toBe(false)
   })
 })
+
+describe('refreshAccessToken', () => {
+  it('keeps a valid token when the refresh fails transiently (5xx / network)', async () => {
+    const responses = [res(200, { access_token: 'A1' }), res(503), Promise.reject(new TypeError('offline'))]
+    globalThis.fetch = vi.fn(() => responses.shift()!) as unknown as typeof fetch
+    const { refreshAccessToken, hasSession } = await freshModule()
+
+    expect(await refreshAccessToken()).toBe('A1')
+    expect(await refreshAccessToken()).toBe('A1') // 503
+    expect(await refreshAccessToken()).toBe('A1') // network error
+    expect(hasSession()).toBe(true)
+  })
+
+  it('ends the session on 401', async () => {
+    const responses = [res(200, { access_token: 'A1' }), res(401)]
+    globalThis.fetch = vi.fn(() => responses.shift()!) as unknown as typeof fetch
+    const { refreshAccessToken, hasSession } = await freshModule()
+
+    await refreshAccessToken()
+    expect(await refreshAccessToken()).toBeNull()
+    expect(hasSession()).toBe(false)
+  })
+})

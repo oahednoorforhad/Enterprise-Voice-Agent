@@ -14,15 +14,20 @@ export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 let accessToken: string | null = null
 let refreshing: Promise<string | null> | null = null
 
-/** Get a fresh access token from the refresh cookie. Concurrent callers share one request. */
+/**
+ * Get a fresh access token from the refresh cookie. Concurrent callers share one request.
+ * Only a 401/403 ends the session; on a network error or 5xx the current token is kept.
+ */
 export function refreshAccessToken(): Promise<string | null> {
   refreshing ??= fetch(`${API_BASE}/api/v1/auth/refresh`, { method: 'POST', credentials: 'include' })
-    .then(async (res) => (res.ok ? ((await res.json()).access_token as string) : null))
-    .catch(() => null)
-    .then((token) => {
-      accessToken = token
+    .then(async (res) => {
+      if (res.ok) accessToken = (await res.json()).access_token as string
+      else if (res.status === 401 || res.status === 403) accessToken = null
+    })
+    .catch(() => {})
+    .then(() => {
       refreshing = null
-      return token
+      return accessToken
     })
   return refreshing
 }
