@@ -1,28 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { api } from '../lib/api-client'
+import { api, refreshAccessToken, sessionCustomerId } from '../lib/api-client'
 
 export function AuthCallbackPage() {
   const navigate = useNavigate()
   const [status, setStatus] = useState<'saving' | 'fetching' | 'error'>('saving')
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const token = params.get('token')
-
-    if (!token) {
-      setStatus('error')
-      return
-    }
-
-    try {
-      localStorage.setItem('jwt', token)
-
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      const customerId = payload.sub
-
+    // The backend set an httpOnly refresh cookie; trade it for an access token
+    void refreshAccessToken().then((token) => {
+      const customerId = token && sessionCustomerId()
+      if (!customerId) {
+        setStatus('error')
+        return
+      }
       setStatus('fetching')
-
       api.customerProfile(customerId).then((result) => {
         const profile = result.data
         if (profile && !profile.active_scenario) {
@@ -31,9 +23,7 @@ export function AuthCallbackPage() {
           navigate({ to: '/app/chat', replace: true })
         }
       }).catch(() => navigate({ to: '/app/chat', replace: true }))
-    } catch {
-      navigate({ to: '/app/chat', replace: true })
-    }
+    })
   }, [navigate])
 
   if (status === 'error') {

@@ -6,6 +6,75 @@
 // Empty VITE_API_URL (production image) = same origin; unset = local backend
 export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
+// ---- Session ---------------------------------------------------------------
+// The 15-min access token lives only in memory (not localStorage, so XSS can't
+// lift a long-lived credential). The 14-day refresh token is an httpOnly cookie
+// the browser sends to /api/v1/auth/refresh on its own.
+
+let accessToken: string | null = null
+let refreshing: Promise<string | null> | null = null
+
+/** Get a fresh access token from the refresh cookie. Concurrent callers share one request. */
+export function refreshAccessToken(): Promise<string | null> {
+  refreshing ??= fetch(`${API_BASE}/api/v1/auth/refresh`, { method: 'POST', credentials: 'include' })
+    .then(async (res) => (res.ok ? ((await res.json()).access_token as string) : null))
+    .catch(() => null)
+    .then((token) => {
+      accessToken = token
+      refreshing = null
+      return token
+    })
+  return refreshing
+}
+
+/** True when signed in, restoring the session from the cookie after a page reload. */
+export async function ensureSession(): Promise<boolean> {
+  return !!(accessToken ?? (await refreshAccessToken()))
+}
+
+export function hasSession(): boolean {
+  return accessToken !== null
+}
+
+/** Customer id (JWT ``sub``) of the signed-in user, if any. */
+export function sessionCustomerId(): string | null {
+  if (!accessToken) return null
+  try {
+    const b64 = accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+    return JSON.parse(atob(b64)).sub ?? null
+  } catch {
+    return null
+  }
+}
+
+export async function logout(): Promise<void> {
+  accessToken = null
+  localStorage.removeItem('active_scenario_name')
+  await fetch(`${API_BASE}/api/v1/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {})
+}
+
+/** fetch() with the access token; on 401 refreshes once and retries, else sends the user to sign in. */
+export async function authFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  const send = (token: string | null) =>
+    fetch(input, {
+      ...init,
+      credentials: 'include',
+      headers: { ...init.headers, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    })
+
+  let token = accessToken ?? (await refreshAccessToken())
+  let res = await send(token)
+  if (res.status === 401 && token) {
+    token = await refreshAccessToken()
+    if (token) res = await send(token)
+  }
+  if (res.status === 401 && window.location.pathname !== '/') {
+    accessToken = null
+    window.location.assign('/')
+  }
+  return res
+}
+
 // ---- Types -----------------------------------------------------------------
 
 export interface ToolResult<T> {
@@ -142,16 +211,12 @@ async function request<T>(
   }
 
   const headers: Record<string, string> = {}
-  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('jwt') : null
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
   }
 
   try {
-    const res = await fetch(url.toString(), {
+    const res = await authFetch(url.toString(), {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -366,14 +431,7 @@ export const api = {
 
 export const mock = {
   get customerId() {
-    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('jwt') : null;
-    if (!token) return MOCK_CUSTOMER_ID;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.sub || MOCK_CUSTOMER_ID;
-    } catch (e) {
-      return MOCK_CUSTOMER_ID;
-    }
+    return sessionCustomerId() ?? MOCK_CUSTOMER_ID
   },
   profile: mockProfile,
   subscription: mockSubscription,

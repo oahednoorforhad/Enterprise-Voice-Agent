@@ -2,22 +2,44 @@
 
 Mounted at ``/api/v1/auth``.  Provides:
 - ``GET /login/google`` — redirects to Google's OAuth consent screen.
-- ``GET /callback/google`` — exchanges auth code, syncs customer, issues JWT.
+- ``GET /callback/google`` — exchanges auth code, syncs customer, sets refresh cookie.
+- ``POST /refresh`` — trades the refresh cookie for a short-lived access token.
+- ``POST /logout`` — clears the refresh cookie.
 """
 
 from authlib.integrations.starlette_client import OAuth
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
 from app.config import get_settings
-from app.core.security import create_access_token
+from app.core.security import (
+    REFRESH_TOKEN_TTL,
+    create_access_token,
+    create_refresh_token,
+    verify_token,
+)
 from app.db import get_db_session
 from app.db.models import Customer  # noqa: TC001
 
 auth_router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
+
+REFRESH_COOKIE = "eva_refresh"
+_COOKIE_PATH = "/api/v1/auth"  # browser only sends it to auth endpoints
+
+
+def _set_refresh_cookie(response: Response, claims: dict) -> None:
+    response.set_cookie(
+        REFRESH_COOKIE,
+        create_refresh_token(claims),
+        max_age=int(REFRESH_TOKEN_TTL.total_seconds()),
+        path=_COOKIE_PATH,
+        httponly=True,
+        secure=get_settings().environment == "production",
+        samesite="lax",
+    )
 
 
 def _get_oauth(request: Request) -> OAuth:
@@ -67,8 +89,8 @@ async def callback_google(
     1. Exchange the authorisation code for an access token.
     2. Fetch userinfo from Google.
     3. Look up an existing customer by email; create one if it doesn't exist.
-    4. Issue a short-lived JWT.
-    5. Redirect to the frontend with the token.
+    4. Set the long-lived refresh token as an httpOnly cookie.
+    5. Redirect to the frontend, which calls ``/refresh`` for an access token.
     """
     oauth = _get_oauth(request)
     settings = get_settings()
@@ -115,12 +137,35 @@ async def callback_google(
             session.add(customer)
             await session.flush()
 
-    jwt_token = create_access_token(
-        data={"sub": str(customer.id), "email": customer.email},
-    )
+    # No token in the URL: it would land in browser history and access logs
+    response = RedirectResponse(url=f"{settings.frontend_url}/auth/callback")
+    _set_refresh_cookie(response, {"sub": str(customer.id), "email": customer.email})
+    return response
 
-    # Redirect to the frontend with the JWT
-    frontend_callback_url = (
-        f"{settings.frontend_url}/auth/callback?token={jwt_token}"
-    )
-    return RedirectResponse(url=frontend_callback_url)
+
+@auth_router.post("/refresh")
+async def refresh(
+    request: Request,
+    response: Response,
+    eva_refresh: str | None = Cookie(default=None),
+) -> dict:
+    """Exchange the refresh cookie for a new access token (and rotate the cookie)."""
+    # CSRF: SameSite=Lax already blocks cross-site POSTs; also reject foreign Origins
+    origin = request.headers.get("origin")
+    if origin and origin not in get_settings().cors_origins:
+        raise HTTPException(status_code=403, detail="Origin not allowed")
+
+    try:
+        payload = verify_token(eva_refresh or "", expected_type="refresh")
+    except Exception:
+        response.delete_cookie(REFRESH_COOKIE, path=_COOKIE_PATH)
+        raise HTTPException(status_code=401, detail="Session expired") from None
+
+    claims = {"sub": payload["sub"], "email": payload.get("email")}
+    _set_refresh_cookie(response, claims)
+    return {"access_token": create_access_token(claims), "token_type": "bearer"}
+
+
+@auth_router.post("/logout", status_code=204)
+async def logout(response: Response) -> None:
+    response.delete_cookie(REFRESH_COOKIE, path=_COOKIE_PATH)

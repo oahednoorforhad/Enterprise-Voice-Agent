@@ -22,7 +22,7 @@ import {
   schedulePlayback,
   type ResamplerHandle,
 } from '../lib/audio-worklet'
-import { API_BASE } from '../lib/api-client'
+import { API_BASE, refreshAccessToken } from '../lib/api-client'
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -232,7 +232,8 @@ export function useVoiceSession(): UseVoiceSessionReturn {
     // Open a fresh playback context (cursor starts at 0 implicitly).
     playbackCtxRef.current = new AudioContext({ sampleRate: 24_000 })
 
-    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('jwt') : null
+    // Fresh 15-min token: the WS URL can end up in logs, so keep its lifetime short
+    const token = await refreshAccessToken()
     const wsUrl = `${WS_BASE}/api/v1/voice/stream?customer_id=${encodeURIComponent(customerId)}&token=${encodeURIComponent(token ?? '')}`
     const ws = new WebSocket(wsUrl)
     wsRef.current = ws
