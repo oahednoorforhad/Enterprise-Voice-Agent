@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from '@tanstack/react-router'
 import ChatMessage, { type Message } from '../../components/ChatMessage'
 import ThinkingPanel, { type ThinkingStep } from '../../components/ThinkingPanel'
-import { api, mock, API_BASE } from '../../lib/api-client'
+import { api, mock, API_BASE, authFetch } from '../../lib/api-client'
 import { useAppContext } from '../__root'
 
 
@@ -155,16 +155,10 @@ export function AppChatPage() {
     const abort = new AbortController()
     abortRef.current = abort
 
-    const token =
-      typeof localStorage !== 'undefined' ? localStorage.getItem('jwt') : null
-
     try {
-      const res = await fetch(`${API_BASE}/api/v1/chat/stream`, {
+      const res = await authFetch(`${API_BASE}/api/v1/chat/stream`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: trimmed,
           customer_id: mock.customerId,

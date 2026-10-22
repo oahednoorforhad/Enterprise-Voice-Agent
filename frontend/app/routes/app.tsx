@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { MessageSquare, Mic, User, Sun, Moon, LogOut, X } from 'lucide-react'
-import { api, mock } from '../lib/api-client'
+import { api, mock, logout } from '../lib/api-client'
 import { useAppContext } from './__root'
 import AccountSummary from '../components/AccountSummary'
 
@@ -125,9 +125,8 @@ export function AppShell() {
 
         {/* Logout */}
         <button
-          onClick={() => {
-            localStorage.removeItem('jwt')
-            localStorage.removeItem('active_scenario_name')
+          onClick={async () => {
+            await logout()
             void navigate({ to: '/', replace: true })
           }}
           className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] text-muted-slate dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"

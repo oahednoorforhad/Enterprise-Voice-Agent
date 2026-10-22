@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { api } from '../lib/api-client'
+import { api, logout } from '../lib/api-client'
 import {
   MessageSquare,
   Mic,
@@ -58,9 +58,8 @@ export default function Sidebar({ isDark, onToggleDark }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [creatingSession, setCreatingSession] = useState(false)
 
-  const handleLogout = () => {
-    localStorage.removeItem('jwt')
-    localStorage.removeItem('active_scenario_name')
+  const handleLogout = async () => {
+    await logout()
     navigate({ to: '/', replace: true })
   }
 
